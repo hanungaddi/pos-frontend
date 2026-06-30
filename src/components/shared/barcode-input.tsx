@@ -102,12 +102,17 @@ export const BarcodeInput = forwardRef<HTMLInputElement, BarcodeInputProps>(
         const suggestions = useMemo(() => {
             if (value.trim().length < 2) return [];
             if (isLocalMode) {
+                const words = value.toLowerCase().trim().split(/\s+/);
+                const rawSearch = value.toLowerCase().trim();
                 return products
-                    .filter(
-                        (p) =>
-                            p.nama.toLowerCase().includes(value.toLowerCase()) ||
-                            (p.barcode && p.barcode.toLowerCase().includes(value.toLowerCase())),
-                    )
+                    .filter((p) => {
+                        // Optional exact barcode match
+                        if (p.barcode && p.barcode.toLowerCase().includes(rawSearch)) return true;
+                        
+                        const productName = p.nama ? p.nama.toLowerCase() : "";
+                        // Every word must be found in the product name
+                        return words.every(word => productName.includes(word));
+                    })
                     .slice(0, 8);
             }
             return apiProducts || [];
