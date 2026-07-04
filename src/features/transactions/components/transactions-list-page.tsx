@@ -16,6 +16,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { Transaction } from "../types";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
+import { IconInfoCircle } from "@tabler/icons-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TransactionFilterValues {
     search: string;
@@ -219,9 +221,47 @@ export function TransactionsListPage() {
             header: "Total",
             meta: {
                 headerClassName: "text-right",
-                cellClassName: "text-right font-bold text-slate-900 tabular-nums",
+                cellClassName: "text-right font-bold text-slate-900 tabular-nums align-middle",
             },
-            cell: ({ row }) => formatRupiah(row.original.total),
+            cell: ({ row }) => {
+                const totalFormatted = formatRupiah(row.original.total);
+                const method = row.original.metode_pembayaran?.toLowerCase();
+                const isDebt = method === "debt";
+
+                return (
+                    <div className="flex items-center justify-end gap-1.5">
+                        <span>{totalFormatted}</span>
+                        <TooltipProvider delayDuration={100}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="text-slate-400 hover:text-indigo-500 cursor-help transition-colors">
+                                        <IconInfoCircle size={14} className="stroke-[2.5]" />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" align="end" className="text-[11px] space-y-1 p-2.5 min-w-[150px] shadow-lg border-slate-700 bg-slate-900">
+                                    <div className="flex justify-between items-center gap-4">
+                                        <span className="text-slate-300">{isDebt ? "DP Tunai" : "Tunai"}</span>
+                                        <span className="font-bold text-emerald-400 tabular-nums">{formatRupiah(row.original.cash_amount || 0)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center gap-4">
+                                        <span className="text-slate-300">{isDebt ? "DP Non-Tunai" : "Non-Tunai"}</span>
+                                        <span className="font-bold text-blue-400 tabular-nums">{formatRupiah(row.original.card_amount || 0)}</span>
+                                    </div>
+                                    {isDebt && (
+                                        <>
+                                            <div className="border-t border-slate-700 my-1.5"></div>
+                                            <div className="flex justify-between items-center gap-4">
+                                                <span className="text-slate-300">Sisa Utang</span>
+                                                <span className="font-bold text-rose-400 tabular-nums">{formatRupiah(row.original.debt_amount || 0)}</span>
+                                            </div>
+                                        </>
+                                    )}
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+                );
+            },
         },
         {
             accessorKey: "status",
