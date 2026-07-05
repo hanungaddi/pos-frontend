@@ -106,9 +106,16 @@ export function ExpenseList({
                 accessorKey: "nama",
                 header: "Keperluan / Deskripsi",
                 cell: ({ row }) => (
-                    <span className="font-semibold text-slate-900 text-xs">
-                        {row.original.nama || "-"}
-                    </span>
+                    <div className="flex flex-col gap-0.5">
+                        <span className="font-semibold text-slate-900 text-xs">
+                            {row.original.nama || "-"}
+                        </span>
+                        {row.original.catatan && row.original.catatan !== row.original.nama && (
+                            <span className="text-[10px] text-slate-400 font-medium line-clamp-1" title={row.original.catatan}>
+                                {row.original.catatan}
+                            </span>
+                        )}
+                    </div>
                 ),
                 size: 220,
             },
