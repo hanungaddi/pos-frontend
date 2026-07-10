@@ -1,22 +1,21 @@
 "use client";
 
-import { FormInput } from "@/components/forms/form-input";
-import { FormSelect } from "@/components/forms/form-select";
 import { FormDatePicker } from "@/components/forms/form-date-picker";
-import { FormTextarea } from "@/components/forms/form-textarea";
+import { FormInput } from "@/components/forms/form-input";
 import { FormNominalInput } from "@/components/forms/form-nominal-input";
-import { Button } from "@/components/ui/button";
+import { FormSelect } from "@/components/forms/form-select";
+import { FormTextarea } from "@/components/forms/form-textarea";
 import { BaseDialog } from "@/components/ui/base-dialog";
+import { Button } from "@/components/ui/button";
+import { useCashAccounts } from "@/features/cash/api/cash-api";
+import { formatRupiah } from "@/hooks/use-format-rupiah";
+import { formatUTC, todayStr } from "@/lib/date-utils";
 import { IconCoin } from "@tabler/icons-react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-import { useCreateExpense, useUpdateExpense } from "../api/expenses-api";
-import { useExpenseCategories } from "../api/expenses-api";
-import { useCashAccounts } from "@/features/cash/api/cash-api";
+import { useCreateExpense, useExpenseCategories, useUpdateExpense } from "../api/expenses-api";
 import type { ExpenseInput } from "../schemas/expense-schema";
 import type { Expense } from "../types";
-import { formatRupiah } from "@/hooks/use-format-rupiah";
-import { formatToISO, todayStr } from "@/lib/date-utils";
 
 interface ExpenseDialogProps {
     open: boolean;
@@ -42,9 +41,7 @@ export function ExpenseDialog({
     const onSubmit = (data: ExpenseInput) => {
         const formattedData = {
             ...data,
-            tanggal: data.tanggal
-                ? formatToISO(data.tanggal)
-                : todayStr(),
+            tanggal: formatUTC(data.tanggal || todayStr()),
         };
 
         if (isEdit && editingExpense) {

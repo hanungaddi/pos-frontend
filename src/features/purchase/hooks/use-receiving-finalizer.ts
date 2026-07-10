@@ -4,22 +4,22 @@ import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 
-import { useAppRouter } from "@/hooks/use-app-router";
-import { todayStr, formatToISO } from "@/lib/date-utils";
 import { PAYMENT_STATUS } from "@/constants/purchase";
+import { useAppRouter } from "@/hooks/use-app-router";
+import { formatUTC, todayStr } from "@/lib/date-utils";
 import { clearPurchaseItemsStore } from "@/stores/purchase-items-store";
 
 import {
+    useBulkCreateReceiving,
     useBulkReplaceReceivingItems,
+    useComparePrices,
+    useCompleteReceiving,
     useCreateReceivingHeader,
     useUpdateReceiving,
-    useCompleteReceiving,
-    useComparePrices,
-    useBulkCreateReceiving,
     type ComparePricesResult,
 } from "@/features/purchase/api/purchase-api";
 import type { ReceivingHeaderInput } from "@/features/purchase/schemas/receiving-schema";
-import type { PurchaseItemLocal, Receiving, PurchaseOrder } from "@/features/purchase/types";
+import type { PurchaseItemLocal, PurchaseOrder, Receiving } from "@/features/purchase/types";
 
 interface UseReceivingFinalizerProps {
     currentId: string;
@@ -89,6 +89,7 @@ export function useReceivingFinalizer({
             ...data,
             purchase_order_uid: data.purchase_order_uid || null,
             supplier_uid: data.supplier_uid || null,
+            tanggal_terima: formatUTC(data.tanggal_terima),
         };
 
         if (isCurrentNew) {
@@ -112,7 +113,7 @@ export function useReceivingFinalizer({
                             supplier_uid: res.data.supplier_uid || "",
                             nomor_faktur: res.data.nomor_faktur || null,
                             nilai_faktur: res.data.nilai_faktur ? Number(res.data.nilai_faktur) : 0,
-                            tanggal_terima: res.data.tanggal_terima || todayStr(),
+                            tanggal_terima: formatUTC(res.data.tanggal_terima || todayStr()),
                             status_pembayaran: res.data.status_pembayaran || PAYMENT_STATUS.PENDING,
                             catatan: res.data.catatan || null,
                             items: itemsPayload,
@@ -143,7 +144,7 @@ export function useReceivingFinalizer({
                 supplier_uid: data.supplier_uid,
                 nomor_faktur: data.nomor_faktur || null,
                 nilai_faktur: Number(data.nilai_faktur),
-                tanggal_terima: data.tanggal_terima,
+                tanggal_terima: formatUTC(data.tanggal_terima),
                 status_pembayaran: data.status_pembayaran,
                 catatan: data.catatan,
                 status: currentReceiving?.status || "draft",
@@ -250,7 +251,7 @@ export function useReceivingFinalizer({
         catatan: string | null;
     }) => {
         setIsFinalizing(true);
-        
+
         const headerData = headerForm.getValues();
 
         try {
@@ -269,7 +270,7 @@ export function useReceivingFinalizer({
                     supplier_uid: headerData.supplier_uid || "",
                     nomor_faktur: formData.nomor_faktur || null,
                     nilai_faktur: Number(formData.nilai_faktur),
-                    tanggal_terima: headerData.tanggal_terima || todayStr(),
+                    tanggal_terima: formatUTC(headerData.tanggal_terima || todayStr()),
                     status_pembayaran: currentReceiving?.status_pembayaran || PAYMENT_STATUS.PENDING,
                     catatan: formData.catatan || headerData.catatan || null,
                     status: "completed",
@@ -296,7 +297,7 @@ export function useReceivingFinalizer({
                 supplier_uid: currentReceiving?.supplier_uid || "",
                 nomor_faktur: formData.nomor_faktur,
                 nilai_faktur: Number(formData.nilai_faktur),
-                tanggal_terima: currentReceiving?.tanggal_terima || (currentReceiving?.created_at ? formatToISO(currentReceiving.created_at) : ""),
+                tanggal_terima: formatUTC(currentReceiving?.tanggal_terima || currentReceiving?.created_at || todayStr()),
                 status_pembayaran: currentReceiving?.status_pembayaran || PAYMENT_STATUS.PENDING,
                 catatan: formData.catatan,
                 status: currentReceiving?.status || "draft",

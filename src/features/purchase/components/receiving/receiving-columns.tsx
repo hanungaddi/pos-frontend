@@ -33,6 +33,25 @@ export const receivingColumns: ColumnDef<Receiving>[] = [
         size: 160,
     },
     {
+        accessorKey: "purchase_order_uid",
+        header: "Sumber",
+        cell: ({ row }) => {
+            const isFromPo = !!row.original.purchase_order_uid;
+            return (
+                <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                        isFromPo
+                            ? "bg-indigo-50 text-indigo-700 border-indigo-100"
+                            : "bg-slate-50 text-slate-700 border-slate-100"
+                    }`}
+                >
+                    {isFromPo ? "Dari PO" : "Langsung"}
+                </span>
+            );
+        },
+        size: 100,
+    },
+    {
         accessorKey: "supplier",
         header: "Supplier",
         enableSorting: false,

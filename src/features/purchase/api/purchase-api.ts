@@ -4,7 +4,7 @@ import { apiClient } from "@/shared/api/axios";
 import { queryKeys } from "@/lib/query-keys";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { ApiResponse, PaginatedResponse, PaginationParams } from "@/types/api";
-import type { Receiving, PurchaseOrder, ReceivingPayment, CashAccount, PurchaseReturn, PaymentSummary } from "../types";
+import type { Receiving, PurchaseOrder, ReceivingPayment, CashAccount, PurchaseReturn, PaymentSummary, SupplierDebtSummary } from "../types";
 import type { ReceivingInput, ReceivingHeaderInput } from "../schemas/receiving-schema";
 import type { PurchaseOrderHeaderInput, PurchaseOrderBulkItemsInput } from "../schemas/order-schema";
 import type { PaymentInput } from "../schemas/payment-schema";
@@ -20,10 +20,17 @@ export function useReceivings(params?: PaginationParams & { search?: string; sta
     });
 }
 
-export function useReceivingDebts(params?: PaginationParams & { search?: string; from?: string; to?: string; tanggal_dari?: string; tanggal_sampai?: string }) {
+export function useReceivingDebts(params?: PaginationParams & { search?: string; from?: string; to?: string; tanggal_dari?: string; tanggal_sampai?: string; supplier_uid?: string }) {
     return useQuery<PaginatedResponse<Receiving>>({
         queryKey: [...queryKeys.purchase.receivings(), "debts", params],
         queryFn: () => apiGetList<Receiving>(ENDPOINTS.PURCHASE.RECEIVING.DEBTS, params),
+    });
+}
+
+export function useReceivingDebtsSummary(params?: PaginationParams & { search?: string }) {
+    return useQuery<PaginatedResponse<SupplierDebtSummary>>({
+        queryKey: [...queryKeys.purchase.receivings(), "debts-summary", params],
+        queryFn: () => apiGetList<SupplierDebtSummary>(ENDPOINTS.PURCHASE.RECEIVING.DEBTS_SUMMARY, params),
     });
 }
 

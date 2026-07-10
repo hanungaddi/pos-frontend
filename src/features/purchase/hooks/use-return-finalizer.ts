@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { useAppRouter } from "@/hooks/use-app-router";
 import { clearPurchaseItemsStore } from "@/stores/purchase-items-store";
+import { formatUTC } from "@/lib/date-utils";
 import {
     useCreatePurchaseReturnHeader,
     useUpdatePurchaseReturn,
@@ -75,7 +76,7 @@ export function useReturnFinalizer({
         const payloadHeader = {
             receiving_uid: data.receiving_uid,
             supplier_uid: data.supplier_uid,
-            tanggal_retur: data.tanggal_retur,
+            tanggal_retur: formatUTC(data.tanggal_retur),
             catatan: data.catatan || null,
         };
 
@@ -139,7 +140,7 @@ export function useReturnFinalizer({
         const payloadHeader = {
             receiving_uid: headerData.receiving_uid,
             supplier_uid: headerData.supplier_uid,
-            tanggal_retur: headerData.tanggal_retur,
+            tanggal_retur: formatUTC(headerData.tanggal_retur),
             catatan: headerData.catatan || null,
         };
 

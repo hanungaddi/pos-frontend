@@ -100,7 +100,7 @@ export function useReceivingHeaderForm({
             const map: Record<string, { sisa: number; nama: string }> = {};
             poData.items.forEach((item: PurchaseOrderItem) => {
                 map[String(item.product_uid)] = {
-                    sisa: item.sisa_belum_diterima,
+                    sisa: Math.max(0, Number(item.kuantitas) - Number(item.kuantitas_diterima)),
                     nama: item.product?.nama || "Produk",
                 };
             });

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { useAppRouter } from "@/hooks/use-app-router";
 import { clearPurchaseItemsStore } from "@/stores/purchase-items-store";
+import { formatUTC } from "@/lib/date-utils";
 import {
     useCreatePurchaseOrderHeader,
     useUpdatePurchaseOrder,
@@ -53,7 +54,7 @@ export function usePoFinalizer({
         const payloadHeader = {
             ...data,
             supplier_uid: data.supplier_uid,
-            tanggal_po: data.tanggal_po,
+            tanggal_po: formatUTC(data.tanggal_po),
             catatan: data.catatan || null,
         };
 
@@ -114,7 +115,7 @@ export function usePoFinalizer({
         const headerData = headerForm.getValues();
         const payloadHeader = {
             supplier_uid: headerData.supplier_uid,
-            tanggal_po: headerData.tanggal_po,
+            tanggal_po: formatUTC(headerData.tanggal_po),
             catatan: headerData.catatan || null,
         };
 

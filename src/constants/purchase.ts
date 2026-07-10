@@ -44,7 +44,7 @@ export const RECEIVING_STATUS_LABELS: Record<ReceivingStatus, string> = {
 
 export const RECEIVING_STATUS_CLASSES: Record<ReceivingStatus, string> = {
     [RECEIVING_STATUS.DRAFT]: "bg-amber-50 text-amber-700 border-amber-100",
-    [RECEIVING_STATUS.COMPLETED]: "bg-blue-50 text-blue-700",
+    [RECEIVING_STATUS.COMPLETED]: "bg-emerald-50 text-emerald-700 border-emerald-100",
 };
 
 export const PAYMENT_STATUS = {
@@ -66,7 +66,7 @@ export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
 export const PAYMENT_STATUS_CLASSES: Record<PaymentStatus, string> = {
     [PAYMENT_STATUS.PENDING]: "bg-amber-50 text-amber-700 border-amber-100",
     [PAYMENT_STATUS.UNPAID]: "bg-rose-50 text-rose-700 border-rose-100",
-    [PAYMENT_STATUS.PARTIAL]: "bg-amber-50 text-amber-700 border-amber-100",
+    [PAYMENT_STATUS.PARTIAL]: "bg-indigo-50 text-indigo-700 border-indigo-100",
     [PAYMENT_STATUS.PAID]: "bg-emerald-50 text-emerald-700 border-emerald-100",
 };
 

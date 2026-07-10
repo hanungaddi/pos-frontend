@@ -70,7 +70,12 @@ export function todayStr(): string {
  */
 export function formatUTC(dateInput?: Date | string | number | null): string {
   const date = parseToDate(dateInput);
-  return date ? date.toISOString() : "";
+  if (!date) return "";
+  
+  const now = new Date();
+  date.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+  
+  return date.toISOString();
 }
 
 /**

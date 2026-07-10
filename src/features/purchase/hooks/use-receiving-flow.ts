@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
-import { getPurchaseItemsStore, selectItemCount, selectTotal } from "@/stores/purchase-items-store";
 import type { PurchaseItemLocal, Receiving } from "@/features/purchase/types";
+import { getPurchaseItemsStore, selectItemCount, selectTotal } from "@/stores/purchase-items-store";
 
+import { useReceivingFinalizer } from "./use-receiving-finalizer";
 import { useReceivingHeaderForm } from "./use-receiving-header-form";
 import { useReceivingScanner } from "./use-receiving-scanner";
-import { useReceivingFinalizer } from "./use-receiving-finalizer";
 
 interface UseReceivingFlowProps {
     receivingId: string;
@@ -59,7 +59,7 @@ export function useReceivingFlow({
     const uniqueProductCount = items.length;
 
     // ─── Sub-hooks invocation ────────────────────────────────────────────────
-    
+
     // 1. Header form and options loading
     const headerState = useReceivingHeaderForm({
         currentId,
@@ -101,10 +101,10 @@ export function useReceivingFlow({
             const poKey = headerState.poData.uid;
             if (!poItemsLoadedRef.current[poKey]) {
                 poItemsLoadedRef.current[poKey] = true;
-                
+
                 let addedCount = 0;
                 headerState.poData.items.forEach((item) => {
-                    const sisa = item.sisa_belum_diterima;
+                    const sisa = Math.max(0, Number(item.kuantitas) - Number(item.kuantitas_diterima));
                     if (sisa > 0 && item.product) {
                         addItem({
                             product_uid: item.product_uid,
@@ -131,19 +131,24 @@ export function useReceivingFlow({
         if (isCurrentNew) {
             const currentPoId = headerState.poId;
             if (prevPoIdRef.current !== currentPoId) {
+                const isFormDirty = headerState.headerForm.formState.isDirty;
+
                 if (isInitialPoLoadRef.current) {
                     if (currentPoId === urlPoUid) {
                         isInitialPoLoadRef.current = false;
                     } else {
                         clearAll();
+                        poItemsLoadedRef.current = {};
                         isInitialPoLoadRef.current = false;
                     }
-                } else {
+                } else if (isFormDirty) {
                     clearAll();
+                    poItemsLoadedRef.current = {};
                 }
                 prevPoIdRef.current = currentPoId;
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isCurrentNew, headerState.poId, urlPoUid, clearAll]);
 
     // ─── Orchestrated Handlers ────────────────────────────────────────────────
@@ -182,20 +187,20 @@ export function useReceivingFlow({
         setIsCreateDialogOpen: scannerState.setIsCreateDialogOpen,
         isResetDialogOpen,
         setIsResetDialogOpen,
-        
+
         // Price compare states
         priceAlerts: finalizerState.priceAlerts,
         isAlertOpen: finalizerState.isAlertOpen,
         isFinalizeOpen: finalizerState.isFinalizeOpen,
         isFinalizing: finalizerState.isFinalizing,
         saveMode: finalizerState.saveMode,
-        
+
         // Lookup loading states / options
         suppliersLoading: headerState.suppliersLoading,
         supplierOptions: headerState.supplierOptions,
         posLoading: headerState.posLoading,
         poOptions: headerState.poOptions,
-        
+
         // Mutations loading states
         isSubmitting: finalizerState.isSubmitting,
 
