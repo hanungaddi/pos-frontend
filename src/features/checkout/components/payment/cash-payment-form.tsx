@@ -4,6 +4,7 @@ import { FormNominalInput } from "@/components/forms/form-nominal-input";
 import { useFormContext, useWatch } from "react-hook-form";
 import { formatRupiah } from "@/hooks/use-format-rupiah";
 import { useMemo } from "react";
+import { generateCheckoutSuggestions } from "@/lib/cash-suggestions";
 
 interface CashPaymentFormProps {
     grandTotal: number;
@@ -17,88 +18,9 @@ export function CashPaymentForm({
     const { setValue, control } = useFormContext();
     const cashReceived = useWatch({ control, name: "cashReceived" });
 
-    // Generate cash suggestions based on real Indonesian banknote denominations:
-    // Rp500, Rp1.000, Rp2.000, Rp5.000, Rp10.000, Rp20.000, Rp50.000, Rp100.000
-    //
-    // The cap limit is the next multiple of Rp100.000 (largest banknote).
-    // e.g. total 167.000 → cap 200.000 (2 × 100k)
-    // e.g. total 88.000  → cap 100.000 (1 × 100k)
-    const suggestions = useMemo(() => {
-        const total = grandTotal;
-        if (total <= 0) {
-            return [10000, 20000, 50000, 100000];
-        }
+    // Only values > grandTotal — see src/lib/cash-suggestions.ts
+    const suggestions = useMemo(() => generateCheckoutSuggestions(grandTotal), [grandTotal]);
 
-        const results = new Set<number>();
-        const capLimit = Math.max(100000, Math.ceil(total / 100000) * 100000);
-
-        const addIfValid = (val: number) => {
-            if (val > total && val <= capLimit) {
-                results.add(val);
-            }
-        };
-
-        if (total < 50000) {
-            // Small transactions: show fine-grained steps + denomination boundaries
-            // e.g. 43.200 → 43.500, 44.000, 45.000, 50.000, 100.000
-            // e.g. 15.500 → 16.000, 17.000, 20.000, 50.000, 100.000
-            const round500 = Math.ceil(total / 500) * 500;
-            addIfValid(round500);          // next 500 boundary (coin)
-
-            const round1k = Math.ceil(total / 1000) * 1000;
-            addIfValid(round1k);           // next 1k boundary
-            addIfValid(round1k + 1000);    // +1k more
-
-            const round5k = Math.ceil(total / 5000) * 5000;
-            addIfValid(round5k);
-
-            const round10k = Math.ceil(total / 10000) * 10000;
-            addIfValid(round10k);
-
-            // Standard bills above total
-            addIfValid(50000);
-            addIfValid(100000);
-
-        } else if (total < 100000) {
-            // Medium transactions: show all denomination boundaries
-            // e.g. 82.500 → 83.000, 84.000, 85.000, 90.000, 100.000
-            // e.g. 67.000 → 68.000, 69.000, 70.000, 80.000, 100.000
-            const round500 = Math.ceil(total / 500) * 500;
-            addIfValid(round500);
-
-            const round1k = Math.ceil(total / 1000) * 1000;
-            addIfValid(round1k);
-            addIfValid(round1k + 1000);
-
-            const round5k = Math.ceil(total / 5000) * 5000;
-            addIfValid(round5k);
-
-            const round10k = Math.ceil(total / 10000) * 10000;
-            addIfValid(round10k);
-
-            const round20k = Math.ceil(total / 20000) * 20000;
-            addIfValid(round20k);
-
-            addIfValid(100000);
-
-        } else {
-            // Large transactions: show 10k, 20k, 50k denomination boundaries + cap
-            // e.g. 167.000 → 170.000, 180.000, 200.000
-            // e.g. 235.000 → 240.000, 250.000, 300.000
-            const round10k = Math.ceil(total / 10000) * 10000;
-            addIfValid(round10k);
-
-            const round20k = Math.ceil(total / 20000) * 20000;
-            addIfValid(round20k);
-
-            const round50k = Math.ceil(total / 50000) * 50000;
-            addIfValid(round50k);
-
-            addIfValid(capLimit);
-        }
-
-        return Array.from(results).sort((a, b) => a - b);
-    }, [grandTotal]);
 
     const cashNum = Number(cashReceived) || 0;
     const isSufficient = cashNum >= grandTotal && cashNum > 0;
