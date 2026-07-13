@@ -3,6 +3,7 @@ import { z } from "zod";
 export const openCashDrawerSchema = z.object({
     opening_balance: z.coerce.number().min(0, "Saldo awal minimal Rp 0"),
     opening_note: z.string().optional(),
+    cash_drawer_uid: z.string().optional(),
 });
 
 export type OpenCashDrawerInput = z.infer<typeof openCashDrawerSchema>;

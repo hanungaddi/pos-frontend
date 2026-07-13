@@ -26,9 +26,21 @@ export interface CashDrawerMovement {
     };
 }
 
+export interface CashDrawer {
+    uid: string;
+    store_uid: string | null;
+    nama: string;
+    saldo: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface CashDrawerSession {
     uid: string;
     store_uid: string | null;
+    cash_drawer_uid: string | null;
+    cash_drawer?: CashDrawer | null;
     user_uid: string;
     opening_balance: number;
     expected_cash: number;
@@ -74,6 +86,7 @@ export interface CashDrawerSession {
 export interface OpenCashDrawerPayload {
     opening_balance: number;
     opening_note?: string;
+    cash_drawer_uid?: string;
 }
 
 export interface CashInPayload {

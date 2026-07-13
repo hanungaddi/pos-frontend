@@ -6,9 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { BaseDialog } from "@/components/ui/base-dialog";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/forms/form-input";
+import { FormSelect } from "@/components/forms/form-select";
 import { FormNominalInput } from "@/components/forms/form-nominal-input";
 import { toast } from "sonner";
-import { useOpenCashDrawer } from "../../api/cash-drawer-api";
+import { useOpenCashDrawer, useAvailableCashDrawers } from "../../api/cash-drawer-api";
 import { openCashDrawerSchema, type OpenCashDrawerInput } from "../../schemas/cash-drawer-schema";
 import { IconLock, IconLoader2, IconDeviceFloppy, IconLogout, IconHome } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
@@ -17,6 +18,7 @@ import { useAppRouter } from "@/hooks/use-app-router";
 import { canAccessAdmin } from "@/constants/roles";
 import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import type { CommandOption } from "@/components/ui/command-select";
 
 interface BukaShiftModalProps {
     open: boolean;
@@ -40,16 +42,34 @@ export function BukaShiftModal({
     const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = React.useState(false);
 
     const openMutation = useOpenCashDrawer();
+    const { data: drawersData, isLoading: drawersLoading } = useAvailableCashDrawers(open ? token : undefined);
+    const drawers = React.useMemo(() => drawersData?.data ?? [], [drawersData]);
+    const showDrawerSelect = drawers.length > 1;
+
+    const drawerOptions: CommandOption[] = React.useMemo(() =>
+        drawers.map((d) => ({
+            value: d.uid,
+            label: d.nama,
+        })),
+        [drawers]
+    );
 
     const methods = useForm<OpenCashDrawerInput>({
         resolver: zodResolver(openCashDrawerSchema) as Resolver<OpenCashDrawerInput>,
         defaultValues: {
             opening_balance: 100000,
             opening_note: "Modal awal shift.",
+            cash_drawer_uid: "",
         },
     });
 
-    const { handleSubmit, formState: { isSubmitting } } = methods;
+    const { handleSubmit, setValue, formState: { isSubmitting } } = methods;
+
+    React.useEffect(() => {
+        if (drawers.length === 1) {
+            setValue("cash_drawer_uid", drawers[0].uid);
+        }
+    }, [drawers, setValue]);
 
     const onSubmit = async (data: OpenCashDrawerInput) => {
         try {
@@ -57,6 +77,7 @@ export function BukaShiftModal({
                 payload: {
                     opening_balance: data.opening_balance,
                     opening_note: data.opening_note?.trim() || undefined,
+                    ...(data.cash_drawer_uid ? { cash_drawer_uid: data.cash_drawer_uid } : {}),
                 },
                 token,
             });
@@ -74,7 +95,7 @@ export function BukaShiftModal({
         }
     };
 
-    const isFormDisabled = openMutation.isPending || isSubmitting || isLoading || !isOnline;
+    const isFormDisabled = openMutation.isPending || isSubmitting || isLoading || !isOnline || drawersLoading;
 
     return (
         <>
@@ -110,6 +131,17 @@ export function BukaShiftModal({
                                 Koneksi internet terputus. Anda harus online untuk dapat membuka shift laci kasir baru. Silakan hubungkan komputer ke jaringan internet.
                             </div>
                         )}
+
+                        {showDrawerSelect && (
+                            <FormSelect<OpenCashDrawerInput>
+                                name="cash_drawer_uid"
+                                label="Pilih Laci Kasir"
+                                options={drawerOptions}
+                                placeholder="Pilih laci kasir..."
+                                disabled={isFormDisabled}
+                            />
+                        )}
+
                         <FormNominalInput<OpenCashDrawerInput>
                             name="opening_balance"
                             label="Saldo Awal (Rp)"

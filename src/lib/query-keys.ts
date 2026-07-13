@@ -117,6 +117,11 @@ export const queryKeys = {
             [...queryKeys.purchase.all, "return", uid] as const,
     },
 
+    cashDrawers: {
+        all: ["cash-drawers"] as const,
+        list: () => [...queryKeys.cashDrawers.all, "list"] as const,
+    },
+
     cashAccounts: {
         all: ["cash-accounts"] as const,
         cashFlow: (filters?: unknown) => ["cash-accounts", "cash-flow", filters] as const,
