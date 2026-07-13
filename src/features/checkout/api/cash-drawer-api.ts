@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/shared/api/axios";
 import type { ApiResponse, PaginatedResponse } from "@/types/api";
 import type {
-    CashDrawer,
     CashDrawerSession,
     OpenCashDrawerPayload,
     CashInPayload,
@@ -21,20 +20,6 @@ const getRequestConfig = (token?: string) => {
     }
     return {};
 };
-
-// 0. Hook to get available cash drawers
-export function useAvailableCashDrawers(token?: string) {
-    return useQuery<ApiResponse<CashDrawer[]>>({
-        queryKey: ["cash-drawer", "available", token],
-        queryFn: async () => {
-            const { data } = await apiClient.get<ApiResponse<CashDrawer[]>>(
-                "/v1/cash-drawer/available",
-                getRequestConfig(token),
-            );
-            return data;
-        },
-    });
-}
 
 // 1. Hook to get current open cash drawer session
 export function useCurrentCashDrawer(token?: string) {

@@ -364,14 +364,6 @@ export const NAVIGATION_CONFIG: SidebarSectionConfig[] = [
                             hasPermission(roles, permissions, "view_members") ||
                             hasPermission(roles, permissions, "manage_members"),
                     },
-                    {
-                        path: ROUTES.ADMIN_CASH_DRAWERS,
-                        label: "Laci Kasir",
-                        permission: (roles, permissions) =>
-                            hasRole(roles, "admin") ||
-                            hasPermission(roles, permissions, "view_cash_drawer") ||
-                            hasPermission(roles, permissions, "manage_cash_drawer"),
-                    },
                 ],
             },
             {
