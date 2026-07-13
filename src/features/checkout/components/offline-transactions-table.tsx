@@ -10,6 +10,7 @@ import {
     IconCash,
     IconCreditCard,
     IconNotebook,
+    IconTrash,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { formatDate, formatToTime } from "@/lib/date-utils";
@@ -58,6 +59,7 @@ interface OfflineTransactionsTableProps {
     isAllSelected: boolean;
     onSelectAllToggle: () => void;
     onRowSelectToggle: (uid: string) => void;
+    onDeleteClick: (record: OfflineTransactionRecord) => void;
 }
 
 export function OfflineTransactionsTable({
@@ -68,6 +70,7 @@ export function OfflineTransactionsTable({
     isAllSelected,
     onSelectAllToggle,
     onRowSelectToggle,
+    onDeleteClick,
 }: OfflineTransactionsTableProps) {
     return (
         <div className="border border-slate-100 rounded-xl overflow-hidden flex-1 flex flex-col min-h-0 bg-slate-50/50">
@@ -86,10 +89,13 @@ export function OfflineTransactionsTable({
                                     />
                                 )}
                             </th>
-                            {["Waktu", "UID", "Metode", "Total", "Produk", "Status"].map((h) => (
+                            {["Waktu", "UID", "Metode", "Total", "Produk", "Status", "Aksi"].map((h) => (
                                 <th
                                     key={h}
-                                    className="text-left text-[9px] font-extrabold uppercase tracking-widest text-slate-400 px-3 py-2.5"
+                                    className={cn(
+                                        "text-left text-[9px] font-extrabold uppercase tracking-widest text-slate-400 px-3 py-2.5",
+                                        h === "Aksi" && "text-center w-16"
+                                    )}
                                 >
                                     {h}
                                 </th>
@@ -100,14 +106,14 @@ export function OfflineTransactionsTable({
                         {isLoading ? (
                             Array.from({ length: 3 }).map((_, i) => (
                                 <tr key={i} className="border-b border-slate-50">
-                                    <td colSpan={7} className="px-4 py-3">
+                                    <td colSpan={8} className="px-4 py-3">
                                         <div className="h-4 bg-slate-100 rounded animate-pulse" />
                                     </td>
                                 </tr>
                             ))
                         ) : records.length === 0 ? (
                             <tr>
-                                <td colSpan={7} className="py-12 text-center">
+                                <td colSpan={8} className="py-12 text-center">
                                     <div className="flex flex-col items-center gap-2 text-slate-300">
                                         <IconPackage size={32} strokeWidth={1.5} />
                                         <span className="text-xs text-slate-400 font-semibold">
@@ -215,6 +221,18 @@ export function OfflineTransactionsTable({
                                                     {record.errorMessage}
                                                 </div>
                                             )}
+                                        </td>
+
+                                        {/* Actions */}
+                                        <td className="px-3 py-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                                            <button
+                                                type="button"
+                                                onClick={() => onDeleteClick(record)}
+                                                className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer border-none bg-transparent"
+                                                title="Hapus Transaksi"
+                                            >
+                                                <IconTrash size={14} />
+                                            </button>
                                         </td>
                                     </tr>
                                 );
