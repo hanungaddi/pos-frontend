@@ -32,15 +32,6 @@ export const ENDPOINTS = {
     // Activity Logs
     ACTIVITY_LOGS: "/v1/activity-logs",
 
-    // Cash Drawer Management
-    CASH_DRAWERS: {
-        LIST: "/v1/cash-drawer/management",
-        DETAIL: (uid: string) => `/v1/cash-drawer/management/${uid}`,
-        CREATE: "/v1/cash-drawer/management",
-        UPDATE: (uid: string) => `/v1/cash-drawer/management/${uid}`,
-        DELETE: (uid: string) => `/v1/cash-drawer/management/${uid}`,
-    },
-
     // Cash Accounts
     CASH_ACCOUNTS: "/v1/cash-accounts",
     CASH_FLOW: "/v1/cash-flow",
