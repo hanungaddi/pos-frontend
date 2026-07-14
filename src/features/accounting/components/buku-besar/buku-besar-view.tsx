@@ -56,8 +56,8 @@ export function BukuBesarView() {
         chart_of_account_uid: coaUid || undefined,
         page,
         per_page: perPage,
-        sort_key: sortBy,
-        sort_by: sortOrder,
+        sort_by: sortBy,
+        sort_order: sortOrder,
     });
 
     const { data: coaData } = useFlatChartOfAccounts();
