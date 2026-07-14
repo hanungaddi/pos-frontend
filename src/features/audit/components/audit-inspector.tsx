@@ -177,8 +177,8 @@ export function AuditInspector({ log, open, onOpenChange }: AuditInspectorProps)
                     <button
                         onClick={() => setActiveTab("info")}
                         className={`px-4 py-2 text-xs font-bold border-b-2 transition-all cursor-pointer ${activeTab === "info"
-                                ? "border-emerald-600 text-emerald-700 font-extrabold"
-                                : "border-transparent text-slate-400 hover:text-slate-700"
+                            ? "border-emerald-600 text-emerald-700 font-extrabold"
+                            : "border-transparent text-slate-400 hover:text-slate-700"
                             }`}
                     >
                         <span className="flex items-center gap-1.5">
@@ -189,8 +189,8 @@ export function AuditInspector({ log, open, onOpenChange }: AuditInspectorProps)
                     <button
                         onClick={() => setActiveTab("properties")}
                         className={`px-4 py-2 text-xs font-bold border-b-2 transition-all cursor-pointer ${activeTab === "properties"
-                                ? "border-emerald-600 text-emerald-700 font-extrabold"
-                                : "border-transparent text-slate-400 hover:text-slate-700"
+                            ? "border-emerald-600 text-emerald-700 font-extrabold"
+                            : "border-transparent text-slate-400 hover:text-slate-700"
                             }`}
                     >
                         <span className="flex items-center gap-1.5">
@@ -201,13 +201,13 @@ export function AuditInspector({ log, open, onOpenChange }: AuditInspectorProps)
                     <button
                         onClick={() => setActiveTab("json")}
                         className={`px-4 py-2 text-xs font-bold border-b-2 transition-all cursor-pointer ${activeTab === "json"
-                                ? "border-emerald-600 text-emerald-700 font-extrabold"
-                                : "border-transparent text-slate-400 hover:text-slate-700"
+                            ? "border-emerald-600 text-emerald-700 font-extrabold"
+                            : "border-transparent text-slate-400 hover:text-slate-700"
                             }`}
                     >
                         <span className="flex items-center gap-1.5">
                             <Copy className="h-3.5 w-3.5" />
-                            JSON Mentah
+                            JSON
                         </span>
                     </button>
                 </div>
@@ -381,7 +381,7 @@ export function AuditInspector({ log, open, onOpenChange }: AuditInspectorProps)
                             {supplier && (
                                 <div className="bg-emerald-50/40 border border-emerald-100/60 rounded-2xl p-4 flex flex-col sm:flex-row justify-between gap-3 shadow-xs">
                                     <div className="space-y-1">
-                                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 block">Hubungan Supplier</span>
+                                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 block">Supplier</span>
                                         <p className="text-xs font-extrabold text-emerald-955">{supplier.nama}</p>
                                         <p className="text-[10px] text-slate-500 font-medium leading-relaxed">{supplier.alamat || "Alamat tidak dicantumkan"}</p>
                                     </div>
@@ -396,7 +396,7 @@ export function AuditInspector({ log, open, onOpenChange }: AuditInspectorProps)
                                 <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-xs mt-3">
                                     <div className="bg-slate-50/80 px-4 py-2.5 border-b border-slate-100 font-bold text-xs text-slate-700 flex items-center gap-1.5">
                                         <CornerDownRight className="h-4 w-4 text-slate-400" />
-                                        Daftar Item / Produk yang Terlibat ({items.length})
+                                        Daftar Item / Produk ({items.length})
                                     </div>
                                     <table className="w-full text-left text-xs border-collapse">
                                         <thead>
