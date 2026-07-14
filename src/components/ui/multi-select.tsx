@@ -23,6 +23,7 @@ interface MultiSelectProps {
   wrapperClassName?: string;
   disabled?: boolean;
   size?: "sm" | "md" | "lg";
+  label?: string;
 }
 
 export function MultiSelect({
@@ -37,6 +38,7 @@ export function MultiSelect({
   wrapperClassName,
   disabled = false,
   size = "sm",
+  label,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -100,113 +102,120 @@ export function MultiSelect({
   }[size];
 
   return (
-    <div className={cn("relative w-full max-w-full min-w-0 select-none", wrapperClassName)}>
-      <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>
-        <PopoverPrimitive.Trigger
-          render={
-            <button
-              type="button"
-              disabled={disabled}
-              title={triggerLabel}
-              className={cn(
-                "grid grid-cols-[minmax(0,1fr)_auto] w-full max-w-full items-center rounded-xl border border-slate-200 bg-white px-3 py-1.5 outline-none transition-all hover:bg-slate-50 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer overflow-hidden",
-                sizeClasses,
-                className
-              )}
-            >
-              <span className="truncate text-left font-medium">
-                {triggerLabel}
-              </span>
-              <ChevronsUpDown className="ml-1.5 h-3.5 w-3.5 shrink-0 opacity-50 justify-self-end" />
-            </button>
-          }
-        />
-
-        <PopoverPrimitive.Portal>
-          <PopoverPrimitive.Positioner
-            align="start"
-            side="bottom"
-            sideOffset={4}
-            className="isolate z-50"
-          >
-            <PopoverPrimitive.Popup
-              className="w-(--anchor-width) min-w-[200px] max-h-[320px] origin-(--transform-origin) animate-in fade-in-0 zoom-in-95 duration-100 outline-none overflow-hidden rounded-xl bg-white border border-slate-100 shadow-lg text-slate-950 flex flex-col"
-            >
-              {/* Search bar */}
-              <div className="flex items-center border-b border-slate-100 px-3 py-1 bg-slate-50/10 shrink-0">
-                <Search className="mr-2 h-3.5 w-3.5 shrink-0 opacity-50 text-slate-400" />
-                <input
-                  className="flex h-9 w-full rounded-md bg-transparent py-3 text-xs outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder={searchPlaceholder}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  autoFocus
-                />
-              </div>
-
-              {/* Action buttons (Select All / Clear All) */}
-              <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2 bg-slate-50/40 text-[10px] font-bold tracking-wide text-slate-500 shrink-0">
-                <button
-                  type="button"
-                  onClick={handleSelectAll}
-                  className="text-indigo-600 hover:text-indigo-800 transition-colors cursor-pointer"
-                >
-                  Pilih Semua
-                </button>
-                <button
-                  type="button"
-                  onClick={handleClearAll}
-                  className="text-rose-600 hover:text-rose-800 transition-colors cursor-pointer"
-                >
-                  {search ? "Bersihkan Hasil" : "Kosongkan"}
-                </button>
-              </div>
-
-              {/* Options list */}
-              <div className="overflow-y-auto overflow-x-hidden p-1 custom-scrollbar flex-1 max-h-[180px]">
-                {isLoading && (
-                  <div className="py-4 text-center text-xs text-slate-400 flex items-center justify-center gap-1.5">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-600" />
-                    <span>Memuat...</span>
-                  </div>
+    <div className="space-y-1.5 w-full">
+      {label && (
+        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+          {label}
+        </label>
+      )}
+      <div className={cn("relative w-full max-w-full min-w-0 select-none", wrapperClassName)}>
+        <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>
+          <PopoverPrimitive.Trigger
+            render={
+              <button
+                type="button"
+                disabled={disabled}
+                title={triggerLabel}
+                className={cn(
+                  "grid grid-cols-[minmax(0,1fr)_auto] w-full max-w-full items-center rounded-xl border border-slate-200 bg-white px-3 py-1.5 outline-none transition-all hover:bg-slate-50 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer overflow-hidden",
+                  sizeClasses,
+                  className
                 )}
+              >
+                <span className="truncate text-left font-medium">
+                  {triggerLabel}
+                </span>
+                <ChevronsUpDown className="ml-1.5 h-3.5 w-3.5 shrink-0 opacity-50 justify-self-end" />
+              </button>
+            }
+          />
 
-                {!isLoading && filteredOptions.length === 0 && (
-                  <div className="py-4 text-center text-xs text-slate-400">
-                    {emptyMessage}
-                  </div>
-                )}
+          <PopoverPrimitive.Portal>
+            <PopoverPrimitive.Positioner
+              align="start"
+              side="bottom"
+              sideOffset={4}
+              className="isolate z-50"
+            >
+              <PopoverPrimitive.Popup
+                className="w-(--anchor-width) min-w-[200px] max-h-[320px] origin-(--transform-origin) animate-in fade-in-0 zoom-in-95 duration-100 outline-none overflow-hidden rounded-xl bg-white border border-slate-100 shadow-lg text-slate-950 flex flex-col"
+              >
+                {/* Search bar */}
+                <div className="flex items-center border-b border-slate-100 px-3 py-1 bg-slate-50/10 shrink-0">
+                  <Search className="mr-2 h-3.5 w-3.5 shrink-0 opacity-50 text-slate-400" />
+                  <input
+                    className="flex h-9 w-full rounded-md bg-transparent py-3 text-xs outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder={searchPlaceholder}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    autoFocus
+                  />
+                </div>
 
-                {!isLoading &&
-                  filteredOptions.map((opt) => {
-                    const isChecked = selectedValuesSet.has(opt.value);
-                    return (
-                      <div
-                        key={opt.value}
-                        data-disabled={opt.disabled}
-                        className={cn(
-                          "relative flex cursor-pointer select-none items-center rounded-lg px-2.5 py-1.5 text-xs outline-none transition-colors hover:bg-slate-50 hover:text-slate-900 data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 gap-2.5",
-                          isChecked && "bg-indigo-50/45 text-indigo-700 font-bold"
-                        )}
-                        onClick={() => !opt.disabled && handleSelect(opt.value)}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {}} // Controlled by wrapper div click
-                          className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer pointer-events-none"
-                        />
-                        <span className="min-w-0 flex-1 truncate text-left text-slate-700">
-                          {opt.label}
-                        </span>
-                      </div>
-                    );
-                  })}
-              </div>
-            </PopoverPrimitive.Popup>
-          </PopoverPrimitive.Positioner>
-        </PopoverPrimitive.Portal>
-      </PopoverPrimitive.Root>
+                {/* Action buttons (Select All / Clear All) */}
+                <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2 bg-slate-50/40 text-[10px] font-bold tracking-wide text-slate-500 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleSelectAll}
+                    className="text-indigo-600 hover:text-indigo-800 transition-colors cursor-pointer"
+                  >
+                    Pilih Semua
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearAll}
+                    className="text-rose-600 hover:text-rose-800 transition-colors cursor-pointer"
+                  >
+                    {search ? "Bersihkan Hasil" : "Kosongkan"}
+                  </button>
+                </div>
+
+                {/* Options list */}
+                <div className="overflow-y-auto overflow-x-hidden p-1 custom-scrollbar flex-1 max-h-[180px]">
+                  {isLoading && (
+                    <div className="py-4 text-center text-xs text-slate-400 flex items-center justify-center gap-1.5">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-600" />
+                      <span>Memuat...</span>
+                    </div>
+                  )}
+
+                  {!isLoading && filteredOptions.length === 0 && (
+                    <div className="py-4 text-center text-xs text-slate-400">
+                      {emptyMessage}
+                    </div>
+                  )}
+
+                  {!isLoading &&
+                    filteredOptions.map((opt) => {
+                      const isChecked = selectedValuesSet.has(opt.value);
+                      return (
+                        <div
+                          key={opt.value}
+                          data-disabled={opt.disabled}
+                          className={cn(
+                            "relative flex cursor-pointer select-none items-center rounded-lg px-2.5 py-1.5 text-xs outline-none transition-colors hover:bg-slate-50 hover:text-slate-900 data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 gap-2.5",
+                            isChecked && "bg-indigo-50/45 text-indigo-700 font-bold"
+                          )}
+                          onClick={() => !opt.disabled && handleSelect(opt.value)}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {}} // Controlled by wrapper div click
+                            className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer pointer-events-none"
+                          />
+                          <span className="min-w-0 flex-1 truncate text-left text-slate-700">
+                            {opt.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                </div>
+              </PopoverPrimitive.Popup>
+            </PopoverPrimitive.Positioner>
+          </PopoverPrimitive.Portal>
+        </PopoverPrimitive.Root>
+      </div>
     </div>
   );
 }

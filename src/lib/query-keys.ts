@@ -166,4 +166,10 @@ export const queryKeys = {
         list: (params?: unknown) => [...queryKeys.manualJournals.all, "list", params] as const,
         detail: (uid: string) => [...queryKeys.manualJournals.all, "detail", uid] as const,
     },
+
+    // COA Mappings
+    coaMappings: {
+        all: ["coa-mappings"] as const,
+        list: () => [...queryKeys.coaMappings.all, "list"] as const,
+    },
 } as const;

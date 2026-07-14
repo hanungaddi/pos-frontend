@@ -94,6 +94,46 @@ export function useReceivingFlow({
     // ─── PO Data Auto-population Effects ──────────────────────────────────────
     const poItemsLoadedRef = useRef<Record<string, boolean>>({});
     const prevPoIdRef = useRef<string | null>(headerState.poId);
+    const initializedIdRef = useRef<string | null>(null);
+
+    // Effect: Prepopulate Zustand items from DB receiving items if existing draft receiving
+    useEffect(() => {
+        if (isCurrentNew) {
+            initializedIdRef.current = null;
+            return;
+        }
+
+        // If we already initialized the store for this ID, do nothing
+        if (initializedIdRef.current === currentId) {
+            return;
+        }
+
+        // If the receiving data is not yet loaded, wait
+        if (!currentReceiving || currentId !== currentReceiving.uid) {
+            return;
+        }
+
+        // If the store already has items, consider it initialized (e.g. from local storage/previous edits)
+        if (store.getState().items.length > 0) {
+            initializedIdRef.current = currentId;
+            return;
+        }
+
+        // Populate from server items
+        if (currentReceiving.items && currentReceiving.items.length > 0) {
+            const dbItems: PurchaseItemLocal[] = currentReceiving.items.map((item) => ({
+                temp_uid: `${Date.now()}-${item.uid}-${Math.random().toString(36).substring(2, 5)}`,
+                product_uid: item.product_uid,
+                barcode: item.product?.barcode || null,
+                nama: item.product?.nama || "Produk Tanpa Nama",
+                kuantitas: item.kuantitas,
+                harga_estimasi: item.harga_beli,
+            }));
+            store.setState({ items: dbItems });
+        }
+
+        initializedIdRef.current = currentId;
+    }, [currentId, currentReceiving, isCurrentNew, store]);
 
     // Effect A: Auto-populate items from PO when it loads
     useEffect(() => {

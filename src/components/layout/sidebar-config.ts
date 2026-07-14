@@ -285,6 +285,12 @@ export const NAVIGATION_CONFIG: SidebarSectionConfig[] = [
                             hasRole(roles, "admin") || hasPermission(roles, permissions, "view_reports"),
                     },
                     {
+                        path: ROUTES.ADMIN_ACCOUNTING_GENERAL_LEDGER,
+                        label: "Buku Besar",
+                        permission: (roles, permissions) =>
+                            hasRole(roles, "admin") || hasPermission(roles, permissions, "view_reports"),
+                    },
+                    {
                         path: ROUTES.ADMIN_ACCOUNTING_COA,
                         label: "Chart of Accounts (COA)",
                         permission: (roles, permissions) =>

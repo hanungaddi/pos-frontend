@@ -187,6 +187,7 @@ export interface ActivityLog {
     model_type: string | null;
     model_uid: string | null;
     description: string;
+    module?: string[] | null;
     ip_address: string | null;
     user_agent: string | null;
     properties: Record<string, unknown> | null;
@@ -198,7 +199,7 @@ export interface ActivityLog {
     };
 }
 
-export function useActivityLogs(params?: PaginationParams & { search?: string }) {
+export function useActivityLogs(params?: PaginationParams & { search?: string; module?: string }) {
     return useQuery<PaginatedResponse<ActivityLog>>({
         queryKey: [...queryKeys.activityLogs.list(), params],
         queryFn: () => apiGetList<ActivityLog>("/v1/activity-logs", params),

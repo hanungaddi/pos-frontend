@@ -1,4 +1,4 @@
-import { BalanceSheetReport } from "@/features/reports/components/balance-sheet/balance-sheet-report";
+import { BalanceSheetReport } from "@/features/accounting/components/balance-sheet";
 
 export default function BalanceSheetPage() {
     return (

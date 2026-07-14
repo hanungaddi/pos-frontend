@@ -189,20 +189,26 @@ export function useReceivingHeaderForm({
 
     // 5. Auto-select and lock supplier if PO is chosen
     const purchaseOrderId = useWatch({ name: "purchase_order_uid", control: headerForm.control });
+    const currentSupplierId = useWatch({ name: "supplier_uid", control: headerForm.control });
     useEffect(() => {
         if (purchaseOrderId) {
+            let targetSupplierId: string | null = null;
             const selectedPo = (outstandingPosData?.data || []).find(
                 (po: PurchaseOrder) => String(po.uid) === purchaseOrderId
             );
             if (selectedPo && selectedPo.supplier_uid) {
-                setHeaderValue("supplier_uid", String(selectedPo.supplier_uid));
+                targetSupplierId = String(selectedPo.supplier_uid);
             } else if (poData && String(poData.uid) === purchaseOrderId && poData.supplier_uid) {
-                setHeaderValue("supplier_uid", String(poData.supplier_uid));
+                targetSupplierId = String(poData.supplier_uid);
             } else if (currentReceiving && String(currentReceiving.purchase_order_uid) === purchaseOrderId) {
-                setHeaderValue("supplier_uid", currentReceiving.supplier_uid ? String(currentReceiving.supplier_uid) : null);
+                targetSupplierId = currentReceiving.supplier_uid ? String(currentReceiving.supplier_uid) : null;
+            }
+
+            if (targetSupplierId && currentSupplierId !== targetSupplierId) {
+                setHeaderValue("supplier_uid", targetSupplierId);
             }
         }
-    }, [purchaseOrderId, outstandingPosData, poData, setHeaderValue, currentReceiving]);
+    }, [purchaseOrderId, currentSupplierId, outstandingPosData, poData, setHeaderValue, currentReceiving]);
 
     return {
         headerForm,

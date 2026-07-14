@@ -1,3 +1,4 @@
+
 export interface PaymentMethodStats {
     count: number;
     total: number;
@@ -224,37 +225,6 @@ export interface SalesByCategoryResponse {
     data: SalesByCategoryItem[];
 }
 
-export interface BalanceSheetItem {
-    kode: string;
-    nama: string;
-    amount: number;
-}
-
-export interface BalanceSheetSection {
-    items: BalanceSheetItem[];
-}
-
-export interface BalanceSheetAssets extends BalanceSheetSection {
-    total_assets: number;
-}
-
-export interface BalanceSheetLiabilities extends BalanceSheetSection {
-    total_liabilities: number;
-}
-
-export interface BalanceSheetEquity extends BalanceSheetSection {
-    total_equity: number;
-}
-
-export interface BalanceSheetData {
-    as_of_date: string;
-    assets: BalanceSheetAssets;
-    liabilities: BalanceSheetLiabilities;
-    equity: BalanceSheetEquity;
-    is_balanced: boolean;
-}
-
-export type BalanceSheetReport = BalanceSheetData;
 
 
 

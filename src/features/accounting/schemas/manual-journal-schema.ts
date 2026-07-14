@@ -6,22 +6,20 @@ export const manualJournalLineSchema = z
         description: z.string().min(1, "Keterangan baris wajib diisi"),
         debit: z
             .number({ error: "Debit harus berupa angka" })
-            .min(0, "Debit tidak boleh kurang dari 0")
             .default(0),
         credit: z
             .number({ error: "Kredit harus berupa angka" })
-            .min(0, "Kredit tidak boleh kurang dari 0")
             .default(0),
     })
     .refine(
         (data) => {
-            // Must have either debit or credit, but not both, and not neither
-            const hasDebit = data.debit > 0;
-            const hasCredit = data.credit > 0;
-            return (hasDebit || hasCredit) && !(hasDebit && hasCredit);
+            // Must have at least one non-zero debit or credit (can be negative)
+            const hasDebit = data.debit !== 0;
+            const hasCredit = data.credit !== 0;
+            return hasDebit || hasCredit;
         },
         {
-            message: "Baris harus diisi debit atau kredit saja (tidak boleh keduanya atau nol)",
+            message: "Baris harus diisi debit atau kredit (tidak boleh keduanya nol)",
             path: ["debit"], // point error to debit field
         }
     );

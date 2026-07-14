@@ -84,6 +84,7 @@ interface DataTableProps<TData, TValue> {
     sortBy?: string;
     sortOrder?: "asc" | "desc";
     onSortChange?: (sortBy: string | undefined, sortOrder: "asc" | "desc" | undefined) => void;
+    enableSortingRemoval?: boolean;
 
     // Row Actions Props
     onEdit?: (row: TData) => void;
@@ -126,6 +127,7 @@ export function DataTable<TData, TValue>({
     sortBy,
     sortOrder,
     onSortChange,
+    enableSortingRemoval = true,
 
     // Row Actions Props destructured
     onEdit,
@@ -400,6 +402,8 @@ export function DataTable<TData, TValue>({
         onSortingChange: handleSortingChange,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
+        manualSorting: !!onSortChange,
+        enableSortingRemoval,
     });
 
     const parentRef = React.useRef<HTMLDivElement>(null);

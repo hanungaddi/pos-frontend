@@ -116,16 +116,22 @@ export function useReturnHeaderForm({
 
     // 5. Auto-select and lock supplier if Receiving reference is chosen
     const receivingId = useWatch({ name: "receiving_uid", control: headerForm.control });
+    const currentSupplierId = useWatch({ name: "supplier_uid", control: headerForm.control });
     useEffect(() => {
         if (receivingId) {
+            let targetSupplierId: string | null = null;
             const selectedReceiving = (receivingsData?.data || []).find(
                 (r) => String(r.uid) === receivingId
             );
             if (selectedReceiving && selectedReceiving.supplier_uid) {
-                setHeaderValue("supplier_uid", String(selectedReceiving.supplier_uid));
+                targetSupplierId = String(selectedReceiving.supplier_uid);
+            }
+
+            if (targetSupplierId && currentSupplierId !== targetSupplierId) {
+                setHeaderValue("supplier_uid", targetSupplierId);
             }
         }
-    }, [receivingId, receivingsData, setHeaderValue]);
+    }, [receivingId, currentSupplierId, receivingsData, setHeaderValue]);
 
     return {
         headerForm,
