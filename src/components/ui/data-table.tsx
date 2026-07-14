@@ -400,6 +400,7 @@ export function DataTable<TData, TValue>({
         onSortingChange: handleSortingChange,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
+        manualSorting: !!onSortChange,
     });
 
     const parentRef = React.useRef<HTMLDivElement>(null);
