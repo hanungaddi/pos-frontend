@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFlatChartOfAccounts } from "@/features/accounting/api/coa-api";
 import { type CoaMapping } from "@/features/accounting/api/coa-mapping-api";
+import { type ChartOfAccount } from "@/features/accounting/types";
 import { useLedgerBackfillStatus } from "@/features/accounting/api/ledger-api";
 import {
     AlertTriangle,
+    ArrowLeftRight,
     Building2,
     Check,
     CreditCard,
@@ -54,8 +56,8 @@ export function CoaMappingManager() {
     const coaOptions = useMemo(() => {
         if (!coas) return [];
         return coas
-            .filter((c) => c.is_active)
-            .map((c) => ({
+            .filter((c: ChartOfAccount) => c.is_active)
+            .map((c: ChartOfAccount) => ({
                 value: c.uid,
                 label: `[${c.kode}] ${c.nama}`,
                 description: `${c.tipe.toUpperCase()} — ${c.saldo_normal === "debit" ? "Debit" : "Kredit"}`,
@@ -101,6 +103,13 @@ export function CoaMappingManager() {
                 items: mappings.filter((m: CoaMapping) => m.transaction_type === "purchase_return"),
             },
             {
+                id: "stock_movement",
+                label: "Penyesuaian & Mutasi Stok",
+                description: "Pemetaan akun untuk penyesuaian nilai persediaan fisik dan pencatatan selisih lebih/kurang stok.",
+                icon: <ArrowLeftRight className="h-4 w-4" />,
+                items: mappings.filter((m: CoaMapping) => m.transaction_type === "stock_movement"),
+            },
+            {
                 id: "supplier_payment",
                 label: "Pembayaran Supplier",
                 description: "Pemetaan akun pelunasan hutang pembelian ke supplier.",
@@ -130,7 +139,7 @@ export function CoaMappingManager() {
             },
         ].map((group) => {
             const mappedCount = group.items.filter(
-                (m) => !!formValues[`${m.transaction_type}:${m.slot}`]
+                (m: CoaMapping) => !!formValues[`${m.transaction_type}:${m.slot}`]
             ).length;
             const total = group.items.length;
             return {
@@ -160,6 +169,7 @@ export function CoaMappingManager() {
             "sale",
             "stock_receiving",
             "purchase_return",
+            "stock_movement",
             "supplier_payment",
             "expense",
             "member_payment",
@@ -177,11 +187,11 @@ export function CoaMappingManager() {
         };
 
         const observer = new IntersectionObserver((entries) => {
-            if (isProgrammaticScroll.current) return;
-
             entries.forEach((entry) => {
                 intersectingSections[entry.target.id] = entry.isIntersecting;
             });
+
+            if (isProgrammaticScroll.current) return;
 
             // Find the first intersecting section in list order
             const active = sectionIds.find((id) => intersectingSections[id]);
