@@ -48,6 +48,7 @@ export function AuditLogs() {
     });
 
     const { watch } = filterMethods;
+    // eslint-disable-next-line react-hooks/incompatible-library
     const selectedModules = watch("modules") || [];
 
     const handleFilterSubmit = (data: AuditFilterValues) => {
@@ -217,27 +218,25 @@ export function AuditLogs() {
                         Catatan lengkap jejak audit pengguna, mutasi kas, stok, transaksi penjualan, dan pembelian secara real-time.
                     </p>
                 </div>
-                
+
                 {/* View Mode Toggle Buttons */}
                 <div className="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl border border-slate-200/50">
                     <button
                         onClick={() => setViewMode("table")}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                            viewMode === "table"
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${viewMode === "table"
                                 ? "bg-white text-emerald-700 shadow-xs border border-slate-200/20"
                                 : "text-slate-500 hover:text-slate-800"
-                        }`}
+                            }`}
                     >
                         <LayoutGrid className="h-3.5 w-3.5" />
                         Tabel
                     </button>
                     <button
                         onClick={() => setViewMode("timeline")}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                            viewMode === "timeline"
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${viewMode === "timeline"
                                 ? "bg-white text-emerald-700 shadow-xs border border-slate-200/20"
                                 : "text-slate-500 hover:text-slate-800"
-                        }`}
+                            }`}
                     >
                         <ListFilter className="h-3.5 w-3.5" />
                         Linimasa

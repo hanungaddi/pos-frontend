@@ -33,6 +33,9 @@ const SLOT_LABELS: Record<string, string> = {
     memberpayment_receivable: "Piutang Usaha",
     return_ap: "Hutang Usaha",
     return_inventory: "Persediaan",
+    movement_inventory: "Persediaan",
+    movement_surplus: "Pendapatan Selisih Persediaan",
+    movement_loss: "Beban Selisih Persediaan",
     cashledger_cash: "Kas (Tunai)",
     cashledger_bank: "Bank",
 };
@@ -57,6 +60,9 @@ const SLOT_DESCRIPTIONS: Record<string, string> = {
     memberpayment_receivable: "Piutang usaha yang berkurang saat member mencicil/melunasi piutangnya.",
     return_ap: "Hutang usaha yang berkurang akibat retur pembelian barang ke supplier.",
     return_inventory: "Persediaan barang dagang yang berkurang akibat retur barang ke supplier.",
+    movement_inventory: "Menampung nilai persediaan barang dagang yang disesuaikan dalam transaksi penyesuaian stok.",
+    movement_surplus: "Mencatat pendapatan dari selisih lebih persediaan saat dilakukan penyesuaian stok fisik.",
+    movement_loss: "Mencatat beban dari selisih kurang (kerugian) persediaan saat dilakukan penyesuaian stok fisik.",
     cashledger_cash: "Akun kas tunai untuk mutasi kas masuk/keluar atau pemindahan dana manual.",
     cashledger_bank: "Akun bank untuk mutasi kas masuk/keluar atau pemindahan dana manual.",
 };

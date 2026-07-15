@@ -8,6 +8,7 @@ import { type ChartOfAccount } from "@/features/accounting/types";
 import { useLedgerBackfillStatus } from "@/features/accounting/api/ledger-api";
 import {
     AlertTriangle,
+    ArrowLeftRight,
     Building2,
     Check,
     CreditCard,
@@ -102,6 +103,13 @@ export function CoaMappingManager() {
                 items: mappings.filter((m: CoaMapping) => m.transaction_type === "purchase_return"),
             },
             {
+                id: "stock_movement",
+                label: "Penyesuaian & Mutasi Stok",
+                description: "Pemetaan akun untuk penyesuaian nilai persediaan fisik dan pencatatan selisih lebih/kurang stok.",
+                icon: <ArrowLeftRight className="h-4 w-4" />,
+                items: mappings.filter((m: CoaMapping) => m.transaction_type === "stock_movement"),
+            },
+            {
                 id: "supplier_payment",
                 label: "Pembayaran Supplier",
                 description: "Pemetaan akun pelunasan hutang pembelian ke supplier.",
@@ -161,6 +169,7 @@ export function CoaMappingManager() {
             "sale",
             "stock_receiving",
             "purchase_return",
+            "stock_movement",
             "supplier_payment",
             "expense",
             "member_payment",
