@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFlatChartOfAccounts } from "@/features/accounting/api/coa-api";
 import { type CoaMapping } from "@/features/accounting/api/coa-mapping-api";
+import { type ChartOfAccount } from "@/features/accounting/types";
 import { useLedgerBackfillStatus } from "@/features/accounting/api/ledger-api";
 import {
     AlertTriangle,
@@ -54,8 +55,8 @@ export function CoaMappingManager() {
     const coaOptions = useMemo(() => {
         if (!coas) return [];
         return coas
-            .filter((c) => c.is_active)
-            .map((c) => ({
+            .filter((c: ChartOfAccount) => c.is_active)
+            .map((c: ChartOfAccount) => ({
                 value: c.uid,
                 label: `[${c.kode}] ${c.nama}`,
                 description: `${c.tipe.toUpperCase()} — ${c.saldo_normal === "debit" ? "Debit" : "Kredit"}`,
@@ -130,7 +131,7 @@ export function CoaMappingManager() {
             },
         ].map((group) => {
             const mappedCount = group.items.filter(
-                (m) => !!formValues[`${m.transaction_type}:${m.slot}`]
+                (m: CoaMapping) => !!formValues[`${m.transaction_type}:${m.slot}`]
             ).length;
             const total = group.items.length;
             return {
@@ -177,11 +178,11 @@ export function CoaMappingManager() {
         };
 
         const observer = new IntersectionObserver((entries) => {
-            if (isProgrammaticScroll.current) return;
-
             entries.forEach((entry) => {
                 intersectingSections[entry.target.id] = entry.isIntersecting;
             });
+
+            if (isProgrammaticScroll.current) return;
 
             // Find the first intersecting section in list order
             const active = sectionIds.find((id) => intersectingSections[id]);
