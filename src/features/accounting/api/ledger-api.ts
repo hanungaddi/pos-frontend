@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiGetData, apiPostData } from "@/shared/api/api-client";
 import { queryKeys } from "@/lib/query-keys";
 import { ENDPOINTS } from "@/shared/api/endpoints";
@@ -36,6 +36,36 @@ export function useLedgerBackfillStatus(enabled: boolean = true) {
         refetchInterval: (query) => {
             const s = query.state.data?.status;
             return s === "queued" || s === "running" ? 2500 : false;
+        },
+    });
+}
+
+export interface BalanceAllocationItem {
+    chart_of_account_uid: string;
+    amount: number;
+}
+
+export interface BalanceEntryItem {
+    unbalanced_uid: string;
+    chart_of_account_uid?: string;
+    allocations?: BalanceAllocationItem[];
+}
+
+export interface BalanceEntryPayload {
+    unbalanced_uid?: string;
+    chart_of_account_uid?: string;
+    allocations?: BalanceAllocationItem[];
+    entries?: BalanceEntryItem[];
+}
+
+export function useBalanceEntry() {
+    const queryClient = useQueryClient();
+    return useMutation<{ status: string; message: string; data?: unknown }, Error, BalanceEntryPayload>({
+        mutationFn: (payload) =>
+            apiPostData<{ status: string; message: string; data?: unknown }>(ENDPOINTS.LEDGER.BALANCE_ENTRY, payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
+            queryClient.invalidateQueries({ queryKey: queryKeys.chartOfAccounts.all });
         },
     });
 }

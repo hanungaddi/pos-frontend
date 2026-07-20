@@ -1,20 +1,26 @@
 "use client";
 
+import Link from "next/link";
 import { FormDatePicker } from "@/components/forms/form-date-picker";
 import { FormInput } from "@/components/forms/form-input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ROUTES } from "@/constants/routes";
 import { useCreateManualJournal, useUpdateManualJournal } from "@/features/accounting/api/manual-journal-api";
 import type { BalanceSheetData, BalanceSheetItem, ChartOfAccount } from "@/features/accounting/types";
 import type { ManualJournal } from "@/features/accounting/types/manual-journal";
+import { formatRupiah } from "@/hooks/use-format-rupiah";
 import { formatUTC, todayStr } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { useBalanceSheetStore } from "@/stores/balance-sheet-store";
 import {
+    IconAlertTriangle,
     IconArrowLeft,
+    IconArrowRight,
     IconBook,
     IconCoin,
     IconEdit,
+    IconScale,
     IconTrendingUp,
     IconWallet,
 } from "@tabler/icons-react";
@@ -546,6 +552,38 @@ export function BalanceSheetDashboard({
                 />
             )}
 
+            {/* Unbalanced Warning Banner with direct shortcut to Entri Tidak Seimbang */}
+            {!isBalanced && !isEditing && (
+                <div className="p-4 rounded-2xl border border-amber-200 bg-amber-50/80 dark:bg-amber-950/30 dark:border-amber-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm text-amber-900 dark:text-amber-200 transition-all">
+                    <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 shrink-0 mt-0.5 sm:mt-0">
+                            <IconAlertTriangle className="w-5 h-5 animate-pulse" />
+                        </div>
+                        <div className="space-y-0.5 text-xs">
+                            <h4 className="font-extrabold text-sm text-amber-950 dark:text-amber-100 flex items-center gap-2 flex-wrap">
+                                Posisi Neraca Tidak Seimbang
+                                <span className="font-mono text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-200/60 dark:bg-amber-900/60 px-2 py-0.5 rounded-md">
+                                    Selisih: {formatRupiah(difference)}
+                                </span>
+                            </h4>
+                            <p className="text-amber-800 dark:text-amber-300 leading-relaxed">
+                                Terdapat ketidakseimbangan nilai pada neraca keuangan. Anda dapat menentukan COA penyeimbang di menu <strong>Entri Tidak Seimbang</strong>.
+                            </p>
+                        </div>
+                    </div>
+                    <Link href={ROUTES.ADMIN_ACCOUNTING_UNBALANCED} className="shrink-0">
+                        <Button
+                            size="sm"
+                            className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl h-9 px-3.5 shadow-sm flex items-center gap-1.5 cursor-pointer w-full sm:w-auto justify-center"
+                        >
+                            <IconScale size={15} />
+                            <span>Entri Tidak Seimbang</span>
+                            <IconArrowRight size={14} />
+                        </Button>
+                    </Link>
+                </div>
+            )}
+
             {/* Balance Status Visual Card */}
             <BalanceSheetStatusCard
                 isBalanced={isBalanced}
@@ -556,6 +594,7 @@ export function BalanceSheetDashboard({
                 rightLabel={effectiveViewType === "standard" ? "Liabilitas + Ekuitas (L + E)" : "Liabilitas + Ekuitas + Pendapatan (L + E + P)"}
                 leftLegend={effectiveViewType === "standard" ? "Aset" : "Aset & Beban"}
                 rightLegend={effectiveViewType === "standard" ? "Kewajiban & Ekuitas" : "Liabilitas, Ekuitas & Pendapatan"}
+                hideUnbalancedButton={isEditing}
             />
 
             {/* Two-Column Assets vs Liabilities and Equity Grid (collapses to 1-column on edit/detail mode for space) */}

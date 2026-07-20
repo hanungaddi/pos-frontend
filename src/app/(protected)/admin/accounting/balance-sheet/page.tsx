@@ -1,9 +1,11 @@
+import { Suspense } from "react";
 import { BalanceSheetReport } from "@/features/accounting/components/balance-sheet";
+import { BalanceSheetSkeleton } from "@/features/accounting/components/balance-sheet/balance-sheet-skeleton";
 
 export default function BalanceSheetPage() {
     return (
-        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <Suspense fallback={<BalanceSheetSkeleton />}>
             <BalanceSheetReport />
-        </div>
+        </Suspense>
     );
 }
