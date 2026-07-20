@@ -16,7 +16,7 @@ import { FormProvider, useFieldArray, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner";
 
 import { FormDatePicker } from "@/components/forms/form-date-picker";
-import { FormInput } from "@/components/forms/form-input";
+import { FormNominalInput } from "@/components/forms/form-nominal-input";
 import { FormSelect } from "@/components/forms/form-select";
 import { Badge } from "@/components/ui/badge";
 import { BaseDialog } from "@/components/ui/base-dialog";
@@ -525,15 +525,11 @@ export function UnbalancedEntriesView() {
                                                         <IconTrash size={15} />
                                                     </button>
                                                 )}
-                                            </div>
-
-                                            <div className="grid grid-cols-1 sm:grid-cols-[1fr_160px] gap-3 items-end">
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                                        Akun COA
-                                                    </label>
+                                            </div>                                             <div className="grid grid-cols-1 sm:grid-cols-[1fr_200px] gap-3 items-end">
+                                                <div>
                                                     <FormSelect
                                                         name={`allocations.${index}.chartOfAccountUid`}
+                                                        label="Akun COA"
                                                         options={coaOptions}
                                                         placeholder="Pilih akun COA..."
                                                         searchPlaceholder="Cari berdasarkan kode atau nama..."
@@ -543,13 +539,10 @@ export function UnbalancedEntriesView() {
                                                     />
                                                 </div>
 
-                                                <div className="space-y-1.5">
-                                                    <FormInput
+                                                <div>
+                                                    <FormNominalInput
                                                         name={`allocations.${index}.amount`}
                                                         label="Nominal (Rp)"
-                                                        type="number"
-                                                        step="any"
-                                                        min="0"
                                                         placeholder="0"
                                                         className="font-mono text-right font-bold text-slate-800 dark:text-slate-100"
                                                     />
