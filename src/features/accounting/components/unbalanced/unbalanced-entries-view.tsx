@@ -425,7 +425,7 @@ export function UnbalancedEntriesView() {
                         <span>Pilih Akun Penyeimbang COA</span>
                     </div>
                 }
-                className="max-w-xl"
+                className="sm:max-w-xl"
                 scrollable={true}
             >
                 {selectedEntry && (
