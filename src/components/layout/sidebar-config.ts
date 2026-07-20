@@ -308,6 +308,12 @@ export const NAVIGATION_CONFIG: SidebarSectionConfig[] = [
                         permission: (roles, permissions) =>
                             hasRole(roles, "admin") || hasPermission(roles, permissions, "view_reports"),
                     },
+                    {
+                        path: ROUTES.ADMIN_ACCOUNTING_UNBALANCED,
+                        label: "Entri Tidak Seimbang",
+                        permission: (roles, permissions) =>
+                            hasRole(roles, "admin") || hasPermission(roles, permissions, "view_reports"),
+                    },
                 ],
             },
         ],
