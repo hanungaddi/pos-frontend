@@ -594,6 +594,7 @@ export function BalanceSheetDashboard({
                 rightLabel={effectiveViewType === "standard" ? "Liabilitas + Ekuitas (L + E)" : "Liabilitas + Ekuitas + Pendapatan (L + E + P)"}
                 leftLegend={effectiveViewType === "standard" ? "Aset" : "Aset & Beban"}
                 rightLegend={effectiveViewType === "standard" ? "Kewajiban & Ekuitas" : "Liabilitas, Ekuitas & Pendapatan"}
+                hideUnbalancedButton={isEditing}
             />
 
             {/* Two-Column Assets vs Liabilities and Equity Grid (collapses to 1-column on edit/detail mode for space) */}

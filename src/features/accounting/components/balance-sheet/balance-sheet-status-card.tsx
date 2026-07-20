@@ -17,6 +17,7 @@ interface BalanceSheetStatusCardProps {
     rightLabel?: string;
     leftLegend?: string;
     rightLegend?: string;
+    hideUnbalancedButton?: boolean;
 }
 
 export function BalanceSheetStatusCard({
@@ -27,7 +28,8 @@ export function BalanceSheetStatusCard({
     leftLabel,
     rightLabel,
     leftLegend,
-    rightLegend
+    rightLegend,
+    hideUnbalancedButton = false,
 }: BalanceSheetStatusCardProps) {
     return (
         <div className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm">
@@ -66,7 +68,7 @@ export function BalanceSheetStatusCard({
                                 </span>
                             )}
                         </p>
-                        {!isBalanced && (
+                        {!isBalanced && !hideUnbalancedButton && (
                             <div className="mt-3">
                                 <Link href={ROUTES.ADMIN_ACCOUNTING_UNBALANCED}>
                                     <Button
