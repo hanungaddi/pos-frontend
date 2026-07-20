@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { useBalanceSheet } from "@/features/accounting/api/reports-api";
 import { useFlatChartOfAccounts } from "@/features/accounting/api/coa-api";
 import { useManualJournalDetail } from "@/features/accounting/api/manual-journal-api";
+import { useBalanceSheet } from "@/features/accounting/api/reports-api";
 import { getThisMonthRange } from "@/lib/date-utils";
-import { IconLoader2 } from "@tabler/icons-react";
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 import { BalanceSheetDashboard } from "./balance-sheet-dashboard";
 import { BalanceSheetSkeleton } from "./balance-sheet-skeleton";
@@ -14,27 +13,22 @@ import { BalanceSheetSkeleton } from "./balance-sheet-skeleton";
 export function BalanceSheetReport() {
     const [asOfDate, setAsOfDate] = useState<string>(() => getThisMonthRange().to);
     const searchParams = useSearchParams();
-    
+
     const action = searchParams.get("action");
     const journalUid = searchParams.get("uid");
 
     const { data, isLoading, isError, refetch } = useBalanceSheet(asOfDate);
     const { data: flatAccounts, isLoading: isLoadingCoas } = useFlatChartOfAccounts();
+    const isJournalNeeded = (action === "edit" || action === "detail") && !!journalUid;
 
-    const { data: journal, isLoading: isJournalLoading } = useManualJournalDetail(
-        (action === "edit" || action === "detail") && journalUid ? journalUid : null
+    const { data: journal, isLoading: isJournalLoading, isFetching: isJournalFetching } = useManualJournalDetail(
+        isJournalNeeded ? journalUid : null
     );
 
-    const isPageLoading = isLoading || isLoadingCoas;
-
-    if ((action === "edit" || action === "detail") && isJournalLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center py-24 gap-3 text-slate-500">
-                <IconLoader2 className="animate-spin text-indigo-650" size={40} />
-                <span className="text-sm font-semibold">Memuat Data Jurnal Penyesuaian...</span>
-            </div>
-        );
-    }
+    const isPageLoading =
+        isLoading ||
+        isLoadingCoas ||
+        (isJournalNeeded && (!journal || isJournalLoading || isJournalFetching));
 
     if (isPageLoading) {
         return <BalanceSheetSkeleton />;
