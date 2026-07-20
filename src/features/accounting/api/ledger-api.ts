@@ -40,9 +40,15 @@ export function useLedgerBackfillStatus(enabled: boolean = true) {
     });
 }
 
-export interface BalanceEntryPayload {
+export interface BalanceEntryItem {
     unbalanced_uid: string;
     chart_of_account_uid: string;
+}
+
+export interface BalanceEntryPayload {
+    unbalanced_uid?: string;
+    chart_of_account_uid?: string;
+    entries?: BalanceEntryItem[];
 }
 
 export function useBalanceEntry() {

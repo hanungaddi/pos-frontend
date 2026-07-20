@@ -126,6 +126,7 @@ export const ENDPOINTS = {
         DAILY: (date: string) => `/v1/reports/sales/daily?date=${date}`,
         JASA_VS_PRODUCT: "/v1/reports/sales/jasa-vs-product",
         UNBALANCED: "/v1/reports/general-ledger/unbalanced",
+        BALANCE_ENTRY: "/v1/reports/general-ledger/balance-entry",
     },
 
     // Chart of Accounts (COA)
@@ -158,7 +159,7 @@ export const ENDPOINTS = {
     LEDGER: {
         BACKFILL: "/v1/ledger/backfill",
         BACKFILL_STATUS: "/v1/ledger/backfill/status",
-        BALANCE_ENTRY: "/v1/ledger/balance-entry",
+        BALANCE_ENTRY: "/v1/reports/general-ledger/balance-entry",
     },
 
     // Transactions (Checkout)

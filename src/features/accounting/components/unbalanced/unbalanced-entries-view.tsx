@@ -218,23 +218,7 @@ export function UnbalancedEntriesView() {
                     ),
                 size: 80,
             },
-            {
-                id: "actions",
-                header: "Aksi",
-                cell: ({ row }) => (
-                    <Button
-                        size="sm"
-                        onClick={() => handleOpenBalancingDialog(row.original)}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 px-3 rounded-xl font-semibold shadow-sm flex items-center gap-1.5 cursor-pointer"
-                    >
-                        <IconScale size={14} />
-                        Seimbangkan
-                    </Button>
-                ),
-                size: 130,
-            },
         ],
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         []
     );
 
@@ -355,6 +339,16 @@ export function UnbalancedEntriesView() {
                     virtualize={true}
                     estimateRowHeight={52}
                     enableSortingRemoval={false}
+                    extraActions={(row) => (
+                        <Button
+                            size="sm"
+                            onClick={() => handleOpenBalancingDialog(row)}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 px-3 rounded-xl font-semibold shadow-sm flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        >
+                            <IconScale size={14} />
+                            Seimbangkan
+                        </Button>
+                    )}
                     sortBy={sortBy}
                     sortOrder={sortOrder}
                     onSortChange={(key, order) => {
