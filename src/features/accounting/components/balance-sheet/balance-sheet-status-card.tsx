@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ROUTES } from "@/constants/routes";
 import { formatRupiah } from "@/hooks/use-format-rupiah";
 import { cn } from "@/lib/utils";
-import { IconInfoCircle, IconScale } from "@tabler/icons-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { IconArrowRight, IconInfoCircle, IconScale } from "@tabler/icons-react";
 
 interface BalanceSheetStatusCardProps {
     isBalanced: boolean;
@@ -63,6 +66,20 @@ export function BalanceSheetStatusCard({
                                 </span>
                             )}
                         </p>
+                        {!isBalanced && (
+                            <div className="mt-3">
+                                <Link href={ROUTES.ADMIN_ACCOUNTING_UNBALANCED}>
+                                    <Button
+                                        size="sm"
+                                        className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl h-8 px-3 shadow-sm inline-flex items-center gap-1.5 cursor-pointer"
+                                    >
+                                        <IconScale size={15} />
+                                        <span>Perbaiki di Entri Tidak Seimbang</span>
+                                        <IconArrowRight size={14} />
+                                    </Button>
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
 
