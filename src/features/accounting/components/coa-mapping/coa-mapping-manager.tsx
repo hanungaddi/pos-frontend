@@ -133,7 +133,7 @@ export function CoaMappingManager() {
             {
                 id: "cash_ledger",
                 label: "Cash Ledger (Kas/Bank)",
-                description: "Pemetaan akun kas dan bank utama untuk penyesuaian dana kasir manual.",
+                description: "Pemetaan akun kas, bank, serta selisih kurang/lebih kas untuk penyesuaian dana kasir manual.",
                 icon: <Building2 className="h-4 w-4" />,
                 items: mappings.filter((m: CoaMapping) => m.transaction_type === "cash_ledger"),
             },

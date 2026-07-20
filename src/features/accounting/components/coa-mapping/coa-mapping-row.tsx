@@ -38,6 +38,8 @@ const SLOT_LABELS: Record<string, string> = {
     movement_loss: "Beban Selisih Persediaan",
     cashledger_cash: "Kas (Tunai)",
     cashledger_bank: "Bank",
+    cashledger_shortage: "Beban Kekurangan Kas",
+    cashledger_overage: "Pendapatan Selisih Kas",
 };
 
 const SLOT_DESCRIPTIONS: Record<string, string> = {
@@ -65,6 +67,8 @@ const SLOT_DESCRIPTIONS: Record<string, string> = {
     movement_loss: "Mencatat beban dari selisih kurang (kerugian) persediaan saat dilakukan penyesuaian stok fisik.",
     cashledger_cash: "Akun kas tunai untuk mutasi kas masuk/keluar atau pemindahan dana manual.",
     cashledger_bank: "Akun bank untuk mutasi kas masuk/keluar atau pemindahan dana manual.",
+    cashledger_shortage: "Mencatat beban selisih kurang (kekurangan) kas saat penyesuaian dana kasir.",
+    cashledger_overage: "Mencatat pendapatan selisih lebih (kelebihan) kas saat penyesuaian dana kasir.",
 };
 
 export function CoaMappingRow({
@@ -74,7 +78,7 @@ export function CoaMappingRow({
     isLoadingCoas,
 }: CoaMappingRowProps) {
     const fieldName = `${m.transaction_type}:${m.slot}`;
-    
+
     // Watch current form value to check if it's unconfigured
     const currentValue = useWatch({ name: fieldName });
     const isUnconfigured = !currentValue;
@@ -92,7 +96,7 @@ export function CoaMappingRow({
                     <code className="text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded">
                         {m.slot}
                     </code>
-                    
+
                     {/* Visual Status Badges */}
                     {isDirty && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 px-2 py-0.5 rounded-full border border-amber-200/50 dark:border-amber-500/20 shadow-sm animate-pulse">
@@ -111,7 +115,7 @@ export function CoaMappingRow({
                     {description}
                 </p>
             </div>
-            
+
             <div className="w-full">
                 <FormSelect
                     name={fieldName}
