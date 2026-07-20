@@ -3,17 +3,20 @@
 import {
     IconAlertTriangle,
     IconCheck,
+    IconPlus,
     IconScale,
-    IconShieldCheck
+    IconShieldCheck,
+    IconTrash
 } from "@tabler/icons-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { useEffect, useMemo, useState } from "react";
-import { FormProvider, useForm, useWatch } from "react-hook-form";
+import { FormProvider, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 import { FormDatePicker } from "@/components/forms/form-date-picker";
+import { FormInput } from "@/components/forms/form-input";
 import { FormSelect } from "@/components/forms/form-select";
 import { Badge } from "@/components/ui/badge";
 import { BaseDialog } from "@/components/ui/base-dialog";
@@ -32,8 +35,13 @@ interface UnbalancedFilterValues {
     to: string;
 }
 
-interface BalanceEntryFormValues {
+interface BalanceAllocationFormItem {
     chartOfAccountUid: string;
+    amount: number | string;
+}
+
+interface BalanceEntryFormValues {
+    allocations: BalanceAllocationFormItem[];
 }
 
 export function UnbalancedEntriesView() {
@@ -59,6 +67,7 @@ export function UnbalancedEntriesView() {
     });
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPage(1);
     }, [from, to]);
 
@@ -78,9 +87,19 @@ export function UnbalancedEntriesView() {
     // Form Context for Dialog
     const dialogMethods = useForm<BalanceEntryFormValues>({
         defaultValues: {
-            chartOfAccountUid: "",
+            allocations: [{ chartOfAccountUid: "", amount: 0 }],
         },
     });
+
+    const { fields, append, remove } = useFieldArray({
+        control: dialogMethods.control,
+        name: "allocations",
+    });
+
+    const watchedAllocations = useWatch({
+        control: dialogMethods.control,
+        name: "allocations",
+    })
 
     const coaOptions = useMemo<CommandOption[]>(() => {
         if (!coaData) return [];
@@ -93,23 +112,57 @@ export function UnbalancedEntriesView() {
             }));
     }, [coaData]);
 
+    const selectedDiff = selectedEntry
+        ? Math.abs(Number(selectedEntry.debit) - Number(selectedEntry.credit))
+        : 0;
+
+    const totalAllocated = useMemo(() => {
+        return watchedAllocations.reduce((sum, item) => {
+            const val = Number(item?.amount);
+            return sum + (isNaN(val) ? 0 : val);
+        }, 0);
+    }, [watchedAllocations]);
+
+    const remainingDiff = selectedDiff - totalAllocated;
+    const isExactMatch = Math.abs(remainingDiff) < 0.01;
+
+    const isValidForm = useMemo(() => {
+        if (!isExactMatch || watchedAllocations.length === 0) return false;
+        return watchedAllocations.every(
+            (item) => !!item?.chartOfAccountUid && Number(item?.amount) > 0
+        );
+    }, [isExactMatch, watchedAllocations]);
+
     const handleOpenBalancingDialog = (entry: GeneralLedgerEntry) => {
+        const diff = Math.abs(Number(entry.debit) - Number(entry.credit));
         setSelectedEntry(entry);
-        dialogMethods.reset({ chartOfAccountUid: "" });
+        dialogMethods.reset({
+            allocations: [{ chartOfAccountUid: "", amount: diff }],
+        });
     };
 
     const handleCloseDialog = () => {
         setSelectedEntry(null);
-        dialogMethods.reset({ chartOfAccountUid: "" });
+        dialogMethods.reset({ allocations: [{ chartOfAccountUid: "", amount: 0 }] });
+    };
+
+    const handleAddAllocation = () => {
+        const nextAmount = remainingDiff > 0 ? remainingDiff : 0;
+        append({ chartOfAccountUid: "", amount: nextAmount });
     };
 
     const onSubmitBalanceEntry = dialogMethods.handleSubmit((values) => {
-        if (!selectedEntry) return;
+        if (!selectedEntry || !isValidForm) return;
+
+        const allocationsPayload = values.allocations.map((item) => ({
+            chart_of_account_uid: item.chartOfAccountUid,
+            amount: Number(item.amount),
+        }));
 
         balanceMutation.mutate(
             {
                 unbalanced_uid: selectedEntry.uid,
-                chart_of_account_uid: values.chartOfAccountUid,
+                allocations: allocationsPayload,
             },
             {
                 onSuccess: (res) => {
@@ -225,10 +278,6 @@ export function UnbalancedEntriesView() {
     const entries = data?.data ?? [];
     const meta = data?.meta;
     const totalUnbalanced = meta?.total ?? entries.length;
-
-    const selectedDiff = selectedEntry
-        ? Math.abs(Number(selectedEntry.debit) - Number(selectedEntry.credit))
-        : 0;
 
     return (
         <div className="space-y-6">
@@ -364,7 +413,7 @@ export function UnbalancedEntriesView() {
                 />
             </section>
 
-            {/* Modal Dialog for Balancing Entry */}
+            {/* Modal Dialog for Balancing Entry with Multi-COA Allocations */}
             <BaseDialog
                 open={!!selectedEntry}
                 onOpenChange={(open) => {
@@ -376,7 +425,8 @@ export function UnbalancedEntriesView() {
                         <span>Pilih Akun Penyeimbang COA</span>
                     </div>
                 }
-                className="max-w-lg"
+                className="max-w-xl"
+                scrollable={true}
             >
                 {selectedEntry && (
                     <FormProvider {...dialogMethods}>
@@ -419,24 +469,105 @@ export function UnbalancedEntriesView() {
                                 )}
                             </div>
 
-                            {/* COA Selection Form Field */}
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                                    Akun COA Penyeimbang <span className="text-rose-500">*</span>
-                                </label>
-                                <FormSelect
-                                    name="chartOfAccountUid"
-                                    options={coaOptions}
-                                    placeholder="Pilih akun COA penyeimbang..."
-                                    searchPlaceholder="Cari berdasarkan kode atau nama..."
-                                    emptyMessage="Akun COA tidak ditemukan."
-                                    isLoading={isLoadingCoas}
-                                    className="w-full dark:bg-slate-900"
-                                />
-                                <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">
-                                    Sistem akan membuat entri balancing jurnal dengan akun COA di atas untuk menetralkan selisih sebesar{" "}
-                                    <strong className="text-slate-700 dark:text-slate-300">{formatRupiah(selectedDiff)}</strong>.
-                                </p>
+                            {/* Live Allocation Summary & Status Banner */}
+                            <div className="p-3.5 rounded-2xl border bg-slate-50/70 dark:bg-slate-900/40 space-y-2 border-slate-200/60 dark:border-slate-800">
+                                <div className="flex justify-between items-center text-xs">
+                                    <span className="font-bold text-slate-700 dark:text-slate-300">Total Alokasi Saat Ini:</span>
+                                    <span className="font-mono font-extrabold text-slate-900 dark:text-slate-100">
+                                        {formatRupiah(totalAllocated)} / {formatRupiah(selectedDiff)}
+                                    </span>
+                                </div>
+
+                                {isExactMatch ? (
+                                    <div className="flex items-center gap-2 text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/30 p-2 rounded-xl border border-emerald-200/60 dark:border-emerald-900/40">
+                                        <IconCheck size={16} className="shrink-0" />
+                                        <span>Total alokasi cocok 100% dengan selisih penyeimbang.</span>
+                                    </div>
+                                ) : remainingDiff > 0 ? (
+                                    <div className="flex items-center gap-2 text-[11px] text-amber-700 dark:text-amber-400 font-semibold bg-amber-50 dark:bg-amber-950/30 p-2 rounded-xl border border-amber-200/60 dark:border-amber-900/40">
+                                        <IconAlertTriangle size={16} className="shrink-0" />
+                                        <span>Sisa yang belum dialokasikan: <strong>{formatRupiah(remainingDiff)}</strong></span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2 text-[11px] text-rose-700 dark:text-rose-400 font-semibold bg-rose-50 dark:bg-rose-950/30 p-2 rounded-xl border border-rose-200/60 dark:border-rose-900/40">
+                                        <IconAlertTriangle size={16} className="shrink-0" />
+                                        <span>Total alokasi melebihi selisih sebesar: <strong>{formatRupiah(Math.abs(remainingDiff))}</strong></span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Dynamic Allocation COA List */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                                        Alokasi Akun COA <span className="text-rose-500">*</span>
+                                    </label>
+                                    <span className="text-[10px] text-slate-400">
+                                        {fields.length} akun dialokasikan
+                                    </span>
+                                </div>
+
+                                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                                    {fields.map((field, index) => (
+                                        <div
+                                            key={field.id}
+                                            className="p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3 shadow-xs relative"
+                                        >
+                                            <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
+                                                <span>Alokasi #{index + 1}</span>
+                                                {fields.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => remove(index)}
+                                                        className="text-rose-500 hover:text-rose-600 p-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                                                        title="Hapus Alokasi"
+                                                    >
+                                                        <IconTrash size={15} />
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-[1fr_160px] gap-3 items-end">
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                                        Akun COA
+                                                    </label>
+                                                    <FormSelect
+                                                        name={`allocations.${index}.chartOfAccountUid`}
+                                                        options={coaOptions}
+                                                        placeholder="Pilih akun COA..."
+                                                        searchPlaceholder="Cari berdasarkan kode atau nama..."
+                                                        emptyMessage="Akun COA tidak ditemukan."
+                                                        isLoading={isLoadingCoas}
+                                                        className="w-full dark:bg-slate-950"
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-1.5">
+                                                    <FormInput
+                                                        name={`allocations.${index}.amount`}
+                                                        label="Nominal (Rp)"
+                                                        type="number"
+                                                        step="any"
+                                                        min="0"
+                                                        placeholder="0"
+                                                        className="font-mono text-right font-bold text-slate-800 dark:text-slate-100"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleAddAllocation}
+                                    className="w-full border-dashed border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold rounded-xl h-9 flex items-center justify-center gap-1.5"
+                                >
+                                    <IconPlus size={15} />
+                                    Tambah Akun Penyeimbang
+                                </Button>
                             </div>
 
                             {/* Dialog Footer Actions */}
@@ -452,8 +583,7 @@ export function UnbalancedEntriesView() {
                                 </Button>
                                 <Button
                                     type="submit"
-                                    // eslint-disable-next-line react-hooks/incompatible-library
-                                    disabled={balanceMutation.isPending || !dialogMethods.watch("chartOfAccountUid")}
+                                    disabled={balanceMutation.isPending || !isValidForm}
                                     className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5"
                                 >
                                     {balanceMutation.isPending ? (
