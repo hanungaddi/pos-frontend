@@ -113,6 +113,7 @@ export interface DebtTransaction {
 
 export interface MemberPayment {
     uid: string;
+    member_uid?: string;
     nomor_pembayaran: string;
     jumlah_bayar: number;
     metode_pembayaran: "cash" | "card";
@@ -138,6 +139,30 @@ export interface MemberPayment {
     };
     member?: Member;
 }
+
+export interface VoidMemberDebtPaymentPayload {
+    alasan: string;
+}
+
+export function useVoidMemberDebtPayment() {
+    const queryClient = useQueryClient();
+    return useMutation<
+        ApiResponse<void>,
+        Error,
+        { memberUid: string; paymentUid: string; data: VoidMemberDebtPaymentPayload }
+    >({
+        mutationFn: ({ memberUid, paymentUid, data }) =>
+            apiPost<ApiResponse<void>, VoidMemberDebtPaymentPayload>(
+                `/v1/members/${memberUid}/debt/${paymentUid}/void`,
+                data
+            ),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.members.all });
+            queryClient.invalidateQueries({ queryKey: ["cash-drawer"] });
+        },
+    });
+}
+
 
 export interface DebtHistoryResponse {
     member: Member;

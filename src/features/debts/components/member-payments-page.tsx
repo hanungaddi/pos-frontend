@@ -4,7 +4,7 @@ import { FilterForm } from "@/components/forms/filter-form";
 import { FormInput } from "@/components/forms/form-input";
 import { DataTable } from "@/components/ui/data-table";
 import { hasPermission, hasRole } from "@/constants/roles";
-import { useMemberPayments, type MemberPayment } from "@/features/members/api/members-api";
+import { useMemberPayments, useVoidMemberDebtPayment, type MemberPayment } from "@/features/members/api/members-api";
 import { formatRupiah } from "@/hooks/use-format-rupiah";
 import { IconCash, IconUser, IconCalendar, IconCreditCard } from "@tabler/icons-react";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -13,6 +13,8 @@ import { id } from "date-fns/locale";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { MemberPaymentVoidDialog } from "./member-payment-void-dialog";
 
 interface MemberPaymentsFilterValues {
     search: string;
@@ -27,11 +29,20 @@ export function MemberPaymentsPage() {
         hasRole(userRoles, "admin") ||
         hasPermission(userRoles, userPermissions, "view_members");
 
+    const hasManageMembers =
+        hasRole(userRoles, "admin") ||
+        hasPermission(userRoles, userPermissions, "manage_members");
+
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
     const [appliedFilters, setAppliedFilters] = useState<{
         search?: string;
     }>(() => ({}));
+
+    const [voidPayment, setVoidPayment] = useState<MemberPayment | null>(null);
+    const [isVoidOpen, setIsVoidOpen] = useState(false);
+
+    const voidPaymentMutation = useVoidMemberDebtPayment();
 
     const filterMethods = useForm<MemberPaymentsFilterValues>({
         defaultValues: {
@@ -52,6 +63,42 @@ export function MemberPaymentsPage() {
         });
         setAppliedFilters({});
         setPage(1);
+    };
+
+    const handleDelete = (payment: MemberPayment) => {
+        setVoidPayment(payment);
+        setIsVoidOpen(true);
+    };
+
+    const handleConfirmVoid = (alasan: string) => {
+        if (!voidPayment) return;
+        const memberUid = voidPayment.member_uid || voidPayment.member?.uid;
+        if (!memberUid) {
+            toast.error("Data member tidak ditemukan untuk pembayaran ini.");
+            return;
+        }
+
+        voidPaymentMutation.mutate(
+            {
+                memberUid,
+                paymentUid: voidPayment.uid,
+                data: { alasan },
+            },
+            {
+                onSuccess: () => {
+                    toast.success("Pembayaran hutang member berhasil dibatalkan (void).");
+                    setIsVoidOpen(false);
+                    setVoidPayment(null);
+                },
+                onError: (err) => {
+                    toast.error(
+                        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                        err.message ||
+                        "Gagal membatalkan pembayaran hutang member."
+                    );
+                },
+            }
+        );
     };
 
     const { data: paymentsData, isLoading, isFetching } = useMemberPayments({
@@ -197,6 +244,24 @@ export function MemberPaymentsPage() {
             ),
         },
         {
+            accessorKey: "status",
+            header: "Status",
+            cell: ({ row }) => {
+                const status = row.original.status?.toLowerCase();
+                const isVoid = status === "void" || status === "voided" || status === "batal" || status === "cancelled";
+                return (
+                    <span
+                        className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full border uppercase tracking-wider inline-flex items-center gap-1 ${isVoid
+                            ? "bg-rose-50 text-rose-700 border-rose-100"
+                            : "bg-emerald-50 text-emerald-700 border-emerald-100"
+                            }`}
+                    >
+                        {isVoid ? "Void" : "Sukses"}
+                    </span>
+                );
+            },
+        },
+        {
             accessorKey: "catatan",
             header: "Catatan",
             cell: ({ row }) => (
@@ -247,6 +312,20 @@ export function MemberPaymentsPage() {
                     entityName="pembayaran hutang member"
                     virtualize={true}
                     estimateRowHeight={52}
+                    onDelete={handleDelete}
+                    hideDelete={(p) => {
+                        const status = p.status?.toLowerCase();
+                        const isAlreadyVoid = status === "void" || status === "voided" || status === "batal" || status === "cancelled";
+                        return !hasManageMembers || isAlreadyVoid;
+                    }}
+                />
+
+                <MemberPaymentVoidDialog
+                    open={isVoidOpen}
+                    onOpenChange={setIsVoidOpen}
+                    payment={voidPayment}
+                    onConfirm={handleConfirmVoid}
+                    isLoading={voidPaymentMutation.isPending}
                 />
             </section>
         </div>
@@ -254,3 +333,4 @@ export function MemberPaymentsPage() {
 }
 
 export default MemberPaymentsPage;
+
