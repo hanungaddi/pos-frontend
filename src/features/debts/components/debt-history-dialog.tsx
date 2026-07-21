@@ -162,11 +162,15 @@ export function DebtHistoryDialog({ open, onOpenChange, member }: DebtHistoryDia
             {
                 accessorKey: "hutang_sesudah",
                 header: () => <div className="text-right text-slate-500">Sisa Hutang</div>,
-                cell: ({ row }) => (
-                    <div className="text-right font-medium text-slate-500 dark:text-slate-400 tabular-nums text-xs">
-                        {formatRupiah(row.original.hutang_sesudah)}
-                    </div>
-                ),
+                cell: ({ row }) => {
+                    const statusLower = row.original.status?.toLowerCase();
+                    const isVoid = statusLower === "void" || statusLower === "voided" || statusLower === "batal" || statusLower === "cancelled";
+                    return (
+                        <div className={`text-right font-medium tabular-nums text-xs ${isVoid ? "line-through text-slate-400 opacity-70" : "text-slate-500 dark:text-slate-400"}`}>
+                            {formatRupiah(row.original.hutang_sesudah)}
+                        </div>
+                    );
+                },
             },
             {
                 accessorKey: "catatan",

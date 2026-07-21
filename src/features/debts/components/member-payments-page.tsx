@@ -208,9 +208,17 @@ export function MemberPaymentsPage() {
             header: "Jumlah Bayar",
             meta: {
                 headerClassName: "text-right",
-                cellClassName: "text-right font-extrabold text-emerald-600 tabular-nums text-xs",
+                cellClassName: "text-right font-extrabold tabular-nums text-xs",
             },
-            cell: ({ row }) => formatRupiah(row.original.jumlah_bayar),
+            cell: ({ row }) => {
+                const status = row.original.status?.toLowerCase();
+                const isVoid = status === "void" || status === "voided" || status === "batal" || status === "cancelled";
+                return (
+                    <span className={isVoid ? "text-rose-500/80 line-through" : "text-emerald-600"}>
+                        {formatRupiah(row.original.jumlah_bayar)}
+                    </span>
+                );
+            },
         },
         {
             id: "mutasi_hutang",
@@ -222,13 +230,17 @@ export function MemberPaymentsPage() {
             cell: ({ row }) => {
                 const sebelum = row.original.hutang_sebelum || 0;
                 const sesudah = row.original.hutang_sesudah || 0;
+                const status = row.original.status?.toLowerCase();
+                const isVoid = status === "void" || status === "voided" || status === "batal" || status === "cancelled";
                 return (
-                    <div className="flex flex-col items-end">
+                    <div className={`flex flex-col items-end ${isVoid ? "line-through opacity-60" : ""}`}>
                         <div className="flex items-center gap-1 font-mono text-[10px] text-slate-400">
                             <span>{formatRupiah(sebelum)}</span>
                             <span>&rarr;</span>
                         </div>
-                        <span className="font-extrabold text-slate-700">{formatRupiah(sesudah)}</span>
+                        <span className={`font-extrabold ${isVoid ? "text-slate-500" : "text-slate-700"}`}>
+                            {formatRupiah(sesudah)}
+                        </span>
                     </div>
                 );
             },
