@@ -4,7 +4,7 @@ import { FilterForm } from "@/components/forms/filter-form";
 import { FormInput } from "@/components/forms/form-input";
 import { DataTable } from "@/components/ui/data-table";
 import { hasPermission, hasRole } from "@/constants/roles";
-import { useMemberPayments, type MemberPayment } from "@/features/members/api/members-api";
+import { useMemberPayments, useVoidMemberDebtPayment, type MemberPayment } from "@/features/members/api/members-api";
 import { formatRupiah } from "@/hooks/use-format-rupiah";
 import { IconCash, IconUser, IconCalendar, IconCreditCard } from "@tabler/icons-react";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -13,6 +13,8 @@ import { id } from "date-fns/locale";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { MemberPaymentVoidDialog } from "./member-payment-void-dialog";
 
 interface MemberPaymentsFilterValues {
     search: string;
@@ -27,11 +29,20 @@ export function MemberPaymentsPage() {
         hasRole(userRoles, "admin") ||
         hasPermission(userRoles, userPermissions, "view_members");
 
+    const hasManageMembers =
+        hasRole(userRoles, "admin") ||
+        hasPermission(userRoles, userPermissions, "manage_members");
+
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
     const [appliedFilters, setAppliedFilters] = useState<{
         search?: string;
     }>(() => ({}));
+
+    const [voidPayment, setVoidPayment] = useState<MemberPayment | null>(null);
+    const [isVoidOpen, setIsVoidOpen] = useState(false);
+
+    const voidPaymentMutation = useVoidMemberDebtPayment();
 
     const filterMethods = useForm<MemberPaymentsFilterValues>({
         defaultValues: {
@@ -54,6 +65,42 @@ export function MemberPaymentsPage() {
         setPage(1);
     };
 
+    const handleDelete = (payment: MemberPayment) => {
+        setVoidPayment(payment);
+        setIsVoidOpen(true);
+    };
+
+    const handleConfirmVoid = (alasan: string) => {
+        if (!voidPayment) return;
+        const memberUid = voidPayment.member_uid || voidPayment.member?.uid;
+        if (!memberUid) {
+            toast.error("Data member tidak ditemukan untuk pembayaran ini.");
+            return;
+        }
+
+        voidPaymentMutation.mutate(
+            {
+                memberUid,
+                paymentUid: voidPayment.uid,
+                data: { alasan },
+            },
+            {
+                onSuccess: () => {
+                    toast.success("Pembayaran hutang member berhasil dibatalkan (void).");
+                    setIsVoidOpen(false);
+                    setVoidPayment(null);
+                },
+                onError: (err) => {
+                    toast.error(
+                        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                        err.message ||
+                        "Gagal membatalkan pembayaran hutang member."
+                    );
+                },
+            }
+        );
+    };
+
     const { data: paymentsData, isLoading, isFetching } = useMemberPayments({
         page,
         per_page: perPage,
@@ -62,9 +109,9 @@ export function MemberPaymentsPage() {
 
     const payments = paymentsData?.data || [];
 
-    const formatDateTime = (dateString: string) => {
+    const formatDate = (dateString: string) => {
         try {
-            return format(new Date(dateString), "dd MMM yyyy, HH:mm", { locale: id });
+            return format(new Date(dateString), "dd MMM yyyy", { locale: id });
         } catch {
             return dateString;
         }
@@ -89,7 +136,7 @@ export function MemberPaymentsPage() {
                 <div className="flex items-center gap-2">
                     <IconCalendar size={14} className="text-slate-400 shrink-0" />
                     <span className="font-medium text-slate-600">
-                        {formatDateTime(row.original.tanggal_bayar)}
+                        {formatDate(row.original.tanggal_bayar)}
                     </span>
                 </div>
             ),
@@ -161,9 +208,17 @@ export function MemberPaymentsPage() {
             header: "Jumlah Bayar",
             meta: {
                 headerClassName: "text-right",
-                cellClassName: "text-right font-extrabold text-emerald-600 tabular-nums text-xs",
+                cellClassName: "text-right font-extrabold tabular-nums text-xs",
             },
-            cell: ({ row }) => formatRupiah(row.original.jumlah_bayar),
+            cell: ({ row }) => {
+                const status = row.original.status?.toLowerCase();
+                const isVoid = status === "void" || status === "voided" || status === "batal" || status === "cancelled";
+                return (
+                    <span className={isVoid ? "text-rose-500/80 line-through" : "text-emerald-600"}>
+                        {formatRupiah(row.original.jumlah_bayar)}
+                    </span>
+                );
+            },
         },
         {
             id: "mutasi_hutang",
@@ -175,13 +230,17 @@ export function MemberPaymentsPage() {
             cell: ({ row }) => {
                 const sebelum = row.original.hutang_sebelum || 0;
                 const sesudah = row.original.hutang_sesudah || 0;
+                const status = row.original.status?.toLowerCase();
+                const isVoid = status === "void" || status === "voided" || status === "batal" || status === "cancelled";
                 return (
-                    <div className="flex flex-col items-end">
+                    <div className={`flex flex-col items-end ${isVoid ? "line-through opacity-60" : ""}`}>
                         <div className="flex items-center gap-1 font-mono text-[10px] text-slate-400">
                             <span>{formatRupiah(sebelum)}</span>
                             <span>&rarr;</span>
                         </div>
-                        <span className="font-extrabold text-slate-700">{formatRupiah(sesudah)}</span>
+                        <span className={`font-extrabold ${isVoid ? "text-slate-500" : "text-slate-700"}`}>
+                            {formatRupiah(sesudah)}
+                        </span>
                     </div>
                 );
             },
@@ -197,11 +256,37 @@ export function MemberPaymentsPage() {
             ),
         },
         {
+            accessorKey: "status",
+            header: "Status",
+            cell: ({ row }) => {
+                const status = row.original.status?.toLowerCase();
+                const isVoid = status === "void" || status === "voided" || status === "batal" || status === "cancelled";
+                return (
+                    <span
+                        className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full border uppercase tracking-wider inline-flex items-center gap-1 ${isVoid
+                            ? "bg-rose-50 text-rose-700 border-rose-100"
+                            : "bg-emerald-50 text-emerald-700 border-emerald-100"
+                            }`}
+                    >
+                        {isVoid ? "Void" : "Sukses"}
+                    </span>
+                );
+            },
+        },
+        {
             accessorKey: "catatan",
             header: "Catatan",
             cell: ({ row }) => (
                 <span className="text-slate-500 font-medium text-xs block max-w-[150px] truncate" title={row.original.catatan || ""}>
                     {row.original.catatan || "-"}
+                </span>
+            ),
+        }, {
+            accessorKey: "catatan_void",
+            header: "Alasan pembatalan",
+            cell: ({ row }) => (
+                <span className="text-slate-500 font-medium text-xs block max-w-[150px] truncate" title={row.original.catatan_void || ""}>
+                    {row.original.catatan_void || "-"}
                 </span>
             ),
         },
@@ -247,6 +332,20 @@ export function MemberPaymentsPage() {
                     entityName="pembayaran hutang member"
                     virtualize={true}
                     estimateRowHeight={52}
+                    onDelete={handleDelete}
+                    hideDelete={(p) => {
+                        const status = p.status?.toLowerCase();
+                        const isAlreadyVoid = status === "void" || status === "voided" || status === "batal" || status === "cancelled";
+                        return !hasManageMembers || isAlreadyVoid;
+                    }}
+                />
+
+                <MemberPaymentVoidDialog
+                    open={isVoidOpen}
+                    onOpenChange={setIsVoidOpen}
+                    payment={voidPayment}
+                    onConfirm={handleConfirmVoid}
+                    isLoading={voidPaymentMutation.isPending}
                 />
             </section>
         </div>
@@ -254,3 +353,4 @@ export function MemberPaymentsPage() {
 }
 
 export default MemberPaymentsPage;
+
