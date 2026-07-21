@@ -7,7 +7,6 @@ import { useSearchParams } from "next/navigation";
 
 import { todayStr, formatToISO } from "@/lib/date-utils";
 import { PAYMENT_STATUS } from "@/constants/purchase";
-import { useAllSuppliers } from "@/features/suppliers/api/suppliers-api";
 import { formatRupiah } from "@/hooks/use-format-rupiah";
 
 import {
@@ -17,6 +16,7 @@ import {
 import { receivingHeaderSchema, type ReceivingHeaderInput } from "@/features/purchase/schemas/receiving-schema";
 import { getPurchaseItemsStore } from "@/stores/purchase-items-store";
 import type { Receiving, PurchaseOrder, PurchaseOrderItem } from "@/features/purchase/types";
+import { useAllSuppliers } from "@/features/suppliers/api/suppliers-api";
 
 interface UseReceivingHeaderFormProps {
     currentId: string;
@@ -91,7 +91,6 @@ export function useReceivingHeaderForm({
     }
 
     const hasInitializedRef = useRef(false);
-    const isClearedRef = useRef(false);
 
     // Build PO sisa reference map for validation
     const poRemainingMap = useRef<Record<string, { sisa: number; nama: string }>>({});
@@ -110,16 +109,31 @@ export function useReceivingHeaderForm({
 
     // ─── Header Form Sync Effects ─────────────────────────────────────────────
 
-    // 0. If urlPoUid is provided and it differs from the persisted PO, reset the store
+    // 0. If urlPoUid is provided and it differs from the persisted PO, reset the store.
+    // Also reset if urlPoUid was removed (e.g. navigating to new receiving without shortcut).
     useEffect(() => {
-        if (isCurrentNew && urlPoUid && initializedPoUidRef.current !== urlPoUid) {
-            initializedPoUidRef.current = urlPoUid;
-            const storedPoId = headerData?.purchase_order_uid;
-            if (storedPoId !== urlPoUid) {
+        if (isCurrentNew) {
+            if (urlPoUid && initializedPoUidRef.current !== urlPoUid) {
+                initializedPoUidRef.current = urlPoUid;
+                const storedPoId = headerData?.purchase_order_uid;
+                if (storedPoId !== urlPoUid) {
+                    clearAll();
+                    setHeaderData({ purchase_order_uid: urlPoUid });
+                    resetHeader({
+                        purchase_order_uid: urlPoUid,
+                        supplier_uid: null,
+                        nomor_faktur: "",
+                        nilai_faktur: 0,
+                        tanggal_terima: todayStr(),
+                        status_pembayaran: PAYMENT_STATUS.PENDING,
+                        catatan: "",
+                    });
+                }
+            } else if (!urlPoUid && initializedPoUidRef.current !== null) {
+                initializedPoUidRef.current = null;
                 clearAll();
-                setHeaderData({ purchase_order_uid: urlPoUid });
                 resetHeader({
-                    purchase_order_uid: urlPoUid,
+                    purchase_order_uid: null,
                     supplier_uid: null,
                     nomor_faktur: "",
                     nilai_faktur: 0,
@@ -144,14 +158,13 @@ export function useReceivingHeaderForm({
                 catatan: "",
             });
             hasInitializedRef.current = false;
-            isClearedRef.current = false;
         }
     }, [isCurrentNew, headerData, resetHeader, urlPoUid]);
 
-    // 2. Save to Zustand store on any change to form values (only when new, not cleared, and form is dirty)
+    // 2. Save to Zustand store on any change to form values (only when new and form is dirty)
     const watchedHeaderValues = useWatch({ control: headerForm.control });
     useEffect(() => {
-        if (isCurrentNew && isHeaderDirty && !isClearedRef.current) {
+        if (isCurrentNew && isHeaderDirty) {
             setHeaderData(watchedHeaderValues);
         }
     }, [watchedHeaderValues, isCurrentNew, isHeaderDirty, setHeaderData]);
@@ -205,7 +218,7 @@ export function useReceivingHeaderForm({
             }
 
             if (targetSupplierId && currentSupplierId !== targetSupplierId) {
-                setHeaderValue("supplier_uid", targetSupplierId);
+                setHeaderValue("supplier_uid", targetSupplierId, { shouldDirty: false });
             }
         }
     }, [purchaseOrderId, currentSupplierId, outstandingPosData, poData, setHeaderValue, currentReceiving]);

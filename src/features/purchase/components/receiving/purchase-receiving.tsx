@@ -11,8 +11,10 @@ import { FilterForm } from "@/components/forms/filter-form";
 import { FormInput } from "@/components/forms/form-input";
 import { FormSelect } from "@/components/forms/form-select";
 import { FormDatePicker } from "@/components/forms/form-date-picker";
-import { useAllSuppliers } from "@/features/suppliers/api/suppliers-api";
 import { RECEIVING_STATUS, RECEIVING_STATUS_LABELS, PAYMENT_STATUS, PAYMENT_STATUS_LABELS } from "@/constants/purchase";
+import { AccessDeniedState } from "@/components/ui/access-denied-state";
+import { clearPurchaseItemsStore } from "@/stores/purchase-items-store";
+import { useAllSuppliers } from "@/features/suppliers/api/suppliers-api";
 
 interface ReceivingFilterValues {
     search: string;
@@ -154,10 +156,10 @@ export function PurchaseReceiving() {
 
     if (!hasViewPurchase) {
         return (
-            <div className="p-8 text-center bg-white border border-slate-100 rounded-2xl shadow-sm">
-                <p className="text-sm font-bold text-slate-800">Akses Ditolak</p>
-                <p className="text-xs text-slate-400 mt-1">Anda tidak memiliki izin untuk mengakses menu Penerimaan.</p>
-            </div>
+            <AccessDeniedState
+                description="Anda tidak memiliki izin untuk melihat atau mengelola penerimaan barang supplier."
+                requiredPermission="view_purchases"
+            />
         );
     }
 
@@ -169,7 +171,10 @@ export function PurchaseReceiving() {
                 meta={receivingsData?.meta}
                 page={receivingPage}
                 onPageChange={setReceivingPage}
-                onAddClick={() => router.push("/admin/purchase/receiving/new")}
+                onAddClick={() => {
+                    clearPurchaseItemsStore("new", "receiving");
+                    router.push("/admin/purchase/receiving/new");
+                }}
                 isLoading={receivingsLoading}
                 isFetching={receivingsFetching}
                 sortBy={sortBy}

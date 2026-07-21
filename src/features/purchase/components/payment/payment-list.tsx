@@ -1,10 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DataTable } from "@/components/ui/data-table";
 import { hasPermission, hasRole } from "@/constants/roles";
-import { formatRupiah } from "@/hooks/use-format-rupiah";
 import { IconPlus } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
 import { useMemo, useState } from "react";
@@ -18,6 +16,7 @@ import {
     PAYMENT_TRANSACTION_STATUS,
 } from "@/constants/purchase";
 import { paymentColumns } from "./payment-columns";
+import { PaymentVoidDialog } from "./void-payment-dialog";
 
 interface PaymentListProps {
     payments: ReceivingPayment[];
@@ -55,22 +54,8 @@ export function PaymentList({
     const router = useAppRouter();
     const deletePayment = useDeletePayment();
 
-    const [confirmDialog, setConfirmDialog] = useState<{
-        open: boolean;
-        title: string;
-        description: React.ReactNode;
-        confirmText: string;
-        cancelText?: string;
-        variant: "danger" | "warning" | "info" | "success";
-        onConfirm: () => void;
-    }>({
-        open: false,
-        title: "",
-        description: "",
-        confirmText: "",
-        variant: "warning",
-        onConfirm: () => { },
-    });
+    const [voidPayment, setVoidPayment] = useState<ReceivingPayment | null>(null);
+    const [isVoidOpen, setIsVoidOpen] = useState(false);
 
     const userRoles = session?.user?.roles || [];
     const userPermissions = session?.user?.permissions || [];
@@ -79,35 +64,25 @@ export function PaymentList({
         hasPermission(userRoles, userPermissions, "manage_purchase");
 
     const handleDelete = (payment: ReceivingPayment) => {
-        const alasan = prompt("Masukkan alasan pembatalan pembayaran (void):");
-        if (alasan === null) return; // user cancelled prompt
-        if (!alasan.trim()) {
-            toast.error("Alasan pembatalan wajib diisi.");
-            return;
-        }
+        setVoidPayment(payment);
+        setIsVoidOpen(true);
+    };
 
-        setConfirmDialog({
-            open: true,
-            title: "Batalkan Pembayaran (Void)",
-            description: `Apakah Anda yakin ingin membatalkan transaksi pembayaran '${payment.nomor_transaksi}' senilai ${formatRupiah(payment.total)}? Alasan: "${alasan}"`,
-            confirmText: "Ya, Batalkan",
-            cancelText: "Kembali",
-            variant: "danger",
-            onConfirm: () => {
-                deletePayment.mutate(
-                    { uid: payment.uid, alasan },
-                    {
-                        onSuccess: () => {
-                            toast.success("Transaksi pembayaran berhasil dibatalkan (void).");
-                            setConfirmDialog((prev) => ({ ...prev, open: false }));
-                        },
-                        onError: (err) => {
-                            toast.error(err.message || "Gagal membatalkan pembayaran.");
-                        },
-                    }
-                );
-            },
-        });
+    const handleConfirmVoid = (alasan: string) => {
+        if (!voidPayment) return;
+        deletePayment.mutate(
+            { uid: voidPayment.uid, alasan },
+            {
+                onSuccess: () => {
+                    toast.success("Transaksi pembayaran berhasil dibatalkan (void).");
+                    setIsVoidOpen(false);
+                    setVoidPayment(null);
+                },
+                onError: (err) => {
+                    toast.error(err.message || "Gagal membatalkan pembayaran.");
+                },
+            }
+        );
     };
 
     const handleEditClick = (payment: ReceivingPayment) => {
@@ -168,16 +143,12 @@ export function PaymentList({
                 hideDelete={(p) => !(p.status === PAYMENT_TRANSACTION_STATUS.COMPLETED && hasManagePurchase)}
             />
 
-            {/* Confirm Dialog */}
-            <ConfirmDialog
-                open={confirmDialog.open}
-                onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
-                title={confirmDialog.title}
-                description={confirmDialog.description}
-                confirmText={confirmDialog.confirmText}
-                cancelText={confirmDialog.cancelText}
-                variant={confirmDialog.variant}
-                onConfirm={confirmDialog.onConfirm}
+            {/* Danger Void Payment Dialog */}
+            <PaymentVoidDialog
+                open={isVoidOpen}
+                onOpenChange={setIsVoidOpen}
+                payment={voidPayment}
+                onConfirm={handleConfirmVoid}
                 isLoading={deletePayment.isPending}
             />
         </section>

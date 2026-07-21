@@ -3,9 +3,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { IconArrowLeft, IconClipboardList, IconClock, IconFileDescription, IconCoins, IconUser, IconCalendar, IconBuildingBank, IconActivity } from "@tabler/icons-react";
+import { IconArrowLeft, IconClipboardList, IconClock, IconFileDescription, IconCoins, IconUser, IconCalendar, IconBuildingBank, IconActivity, IconBan } from "@tabler/icons-react";
 import { useAppRouter } from "@/hooks/use-app-router";
-import { usePaymentDetail, useReceivingDetail, useCashAccounts, usePaymentSummary } from "../../api/purchase-api";
+import { useSession } from "next-auth/react";
+import { hasRole, hasPermission } from "@/constants/roles";
+import { toast } from "sonner";
+import { usePaymentDetail, useReceivingDetail, useCashAccounts, usePaymentSummary, useDeletePayment } from "../../api/purchase-api";
 import { useActivityLogs } from "@/features/stock/api/stock-api";
 import { formatRupiah } from "@/hooks/use-format-rupiah";
 import {
@@ -16,17 +19,43 @@ import {
     PAYMENT_STATUS,
 } from "@/constants/purchase";
 import { formatToISO, formatDate, formatToReadableDateTime } from "@/lib/date-utils";
+import { PaymentVoidDialog } from "./void-payment-dialog";
 
 interface PaymentDetailPageProps {
     paymentId: string;
 }
 
 export function PaymentDetailPage({ paymentId }: PaymentDetailPageProps) {
+    const { data: session } = useSession();
     const router = useAppRouter();
     const [activeTab, setActiveTab] = useState<"details" | "logs">("details");
+    const [isVoidOpen, setIsVoidOpen] = useState(false);
 
+    const deletePayment = useDeletePayment();
     const { data: payment, isLoading: isDetailLoading } = usePaymentDetail(paymentId);
     const { data: cashAccounts = [] } = useCashAccounts();
+
+    const userRoles = session?.user?.roles || [];
+    const userPermissions = session?.user?.permissions || [];
+    const hasManagePurchase =
+        hasRole(userRoles, "admin") ||
+        hasPermission(userRoles, userPermissions, "manage_purchase");
+
+    const handleConfirmVoid = (alasan: string) => {
+        if (!payment) return;
+        deletePayment.mutate(
+            { uid: payment.uid, alasan },
+            {
+                onSuccess: () => {
+                    toast.success("Transaksi pembayaran berhasil dibatalkan (void).");
+                    setIsVoidOpen(false);
+                },
+                onError: (err) => {
+                    toast.error(err.message || "Gagal membatalkan pembayaran.");
+                },
+            }
+        );
+    };
 
     // Fetch the receiving invoice details associated with this payment
     const { data: receiving, isLoading: isReceivingLoading } = useReceivingDetail(
@@ -85,26 +114,39 @@ export function PaymentDetailPage({ paymentId }: PaymentDetailPageProps) {
     return (
         <div className="max-w-6xl mx-auto space-y-6">
             {/* Header / Breadcrumbs */}
-            <div className="flex items-center gap-4">
-                <Button
-                    type="button"
-                    onClick={() => router.push("/admin/purchase/payment")}
-                    variant="outline"
-                    className="p-2 h-9 w-9 rounded-xl border-slate-200 text-slate-500 hover:text-slate-900 bg-white cursor-pointer"
-                >
-                    <IconArrowLeft size={18} />
-                </Button>
-                <div>
-                    <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                        <span>Detail Pembayaran Supplier</span>
-                        <span className="text-xs font-mono font-normal text-slate-400">
-                            ({payment.nomor_transaksi})
-                        </span>
-                    </h2>
-                    <p className="text-xs text-slate-400">
-                        Detail riwayat transaksi pembayaran hutang atas penerimaan barang dari supplier.
-                    </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <Button
+                        type="button"
+                        onClick={() => router.push("/admin/purchase/payment")}
+                        variant="outline"
+                        className="p-2 h-9 w-9 rounded-xl border-slate-200 text-slate-500 hover:text-slate-900 bg-white cursor-pointer"
+                    >
+                        <IconArrowLeft size={18} />
+                    </Button>
+                    <div>
+                        <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <span>Detail Pembayaran Supplier</span>
+                            <span className="text-xs font-mono font-normal text-slate-400">
+                                ({payment.nomor_transaksi})
+                            </span>
+                        </h2>
+                        <p className="text-xs text-slate-400">
+                            Detail riwayat transaksi pembayaran hutang atas penerimaan barang dari supplier.
+                        </p>
+                    </div>
                 </div>
+
+                {payment.status === PAYMENT_TRANSACTION_STATUS.COMPLETED && hasManagePurchase && (
+                    <Button
+                        type="button"
+                        onClick={() => setIsVoidOpen(true)}
+                        variant="outline"
+                        className="border-rose-200 hover:border-rose-300 hover:bg-rose-50/50 text-rose-600 font-bold text-xs h-9 rounded-xl flex items-center gap-1.5 cursor-pointer bg-white"
+                    >
+                        <IconBan size={16} /> Batalkan Pembayaran (Void)
+                    </Button>
+                )}
             </div>
 
             {/* Layout Grid */}
@@ -417,6 +459,15 @@ export function PaymentDetailPage({ paymentId }: PaymentDetailPageProps) {
                     )}
                 </div>
             </div>
+
+            {/* Danger Void Payment Dialog */}
+            <PaymentVoidDialog
+                open={isVoidOpen}
+                onOpenChange={setIsVoidOpen}
+                payment={payment}
+                onConfirm={handleConfirmVoid}
+                isLoading={deletePayment.isPending}
+            />
         </div>
     );
 }

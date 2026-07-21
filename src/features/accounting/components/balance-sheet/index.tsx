@@ -1,24 +1,27 @@
 "use client";
 
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useBalanceSheet } from "@/features/accounting/api/reports-api";
 import { useFlatChartOfAccounts } from "@/features/accounting/api/coa-api";
 import { useManualJournalDetail } from "@/features/accounting/api/manual-journal-api";
-import { useBalanceSheet } from "@/features/accounting/api/reports-api";
 import { getThisMonthRange } from "@/lib/date-utils";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
 
 import { BalanceSheetDashboard } from "./balance-sheet-dashboard";
+import { BalanceSheetDetail } from "./balance-sheet-detail";
+import { BalanceSheetEditor } from "./balance-sheet-editor";
 import { BalanceSheetSkeleton } from "./balance-sheet-skeleton";
 
 export function BalanceSheetReport() {
     const [asOfDate, setAsOfDate] = useState<string>(() => getThisMonthRange().to);
     const searchParams = useSearchParams();
-
+    
     const action = searchParams.get("action");
     const journalUid = searchParams.get("uid");
 
     const { data, isLoading, isError, refetch } = useBalanceSheet(asOfDate);
     const { data: flatAccounts, isLoading: isLoadingCoas } = useFlatChartOfAccounts();
+
     const isJournalNeeded = (action === "edit" || action === "detail") && !!journalUid;
 
     const { data: journal, isLoading: isJournalLoading, isFetching: isJournalFetching } = useManualJournalDetail(
@@ -43,16 +46,32 @@ export function BalanceSheetReport() {
         );
     }
 
+    if (action === "new" || action === "edit") {
+        return (
+            <BalanceSheetEditor
+                asOfDate={asOfDate}
+                data={data}
+                flatAccounts={flatAccounts}
+                journal={journal}
+                action={action}
+                journalUid={journalUid}
+                refetch={() => {
+                    void refetch();
+                }}
+            />
+        );
+    }
+
+    if (action === "detail" && journal && flatAccounts) {
+        return <BalanceSheetDetail journal={journal} flatAccounts={flatAccounts} />;
+    }
+
     return (
         <BalanceSheetDashboard
             asOfDate={asOfDate}
             onAsOfDateChange={setAsOfDate}
             data={data}
             flatAccounts={flatAccounts}
-            journal={journal}
-            action={action}
-            journalUid={journalUid}
-            refetch={refetch}
         />
     );
 }
