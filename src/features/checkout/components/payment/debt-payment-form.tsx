@@ -1,12 +1,12 @@
 "use client";
 
-import { FormNominalInput } from "@/components/forms/form-nominal-input";
 import { FormInput } from "@/components/forms/form-input";
+import { FormNominalInput } from "@/components/forms/form-nominal-input";
+import { Member } from "@/features/members/types";
 import { formatRupiah } from "@/hooks/use-format-rupiah";
-import { toast } from "sonner";
-import type { Member } from "@/features/members/types";
-import { useFormContext, useWatch } from "react-hook-form";
 import { IconAlertTriangle, IconUser } from "@tabler/icons-react";
+import { useFormContext, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 
 interface DebtPaymentFormProps {
     selectedMember: Member | null;
@@ -38,9 +38,9 @@ export function DebtPaymentForm({
         );
     }
 
-    const cashNum = Number(cashReceived) || 0;
+    // const cashNum = Number(cashReceived) || 0;
     const cardAmountNum = Number(cardAmount) || 0;
-    const remainingDebt = grandTotal - cashNum - cardAmountNum;
+    // const remainingDebt = grandTotal - cashNum - cardAmountNum;
 
     return (
         <div className="space-y-2 animate-in fade-in-50 duration-200">
@@ -203,14 +203,14 @@ export function DebtPaymentForm({
             )}
 
             {/* Sisa Hutang Baru Breakdown */}
-            <div className="bg-rose-50/50 border border-rose-100/50 p-2 rounded-xl text-center select-none">
+            {/* <div className="bg-rose-50/50 border border-rose-100/50 p-2 rounded-xl text-center select-none">
                 <span className="text-[9px] font-bold text-rose-500 uppercase tracking-widest block">
                     Sisa Hutang Baru
                 </span>
                 <h2 className="text-xl font-black mt-1 tracking-tight tabular-nums text-rose-600">
                     {formatRupiah(remainingDebt)}
                 </h2>
-            </div>
+            </div> */}
         </div>
     );
 }

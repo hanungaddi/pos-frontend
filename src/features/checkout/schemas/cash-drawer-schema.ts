@@ -23,7 +23,14 @@ export const cashOutSchema = z.object({
 export type CashOutInput = z.infer<typeof cashOutSchema>;
 
 export const closeCashDrawerSchema = z.object({
-    actual_closing_balance: z.coerce.number().min(0, "Saldo akhir minimal Rp 0"),
+    actual_closing_balance: z
+        .union([z.number(), z.null(), z.undefined()])
+        .refine((val): val is number => val !== null && val !== undefined, {
+            message: "Jumlah saldo akhir (fisik laci) wajib diisi",
+        })
+        .refine((val) => val >= 0, {
+            message: "Saldo akhir minimal Rp 0",
+        }),
     closing_note: z.string().optional(),
 });
 
