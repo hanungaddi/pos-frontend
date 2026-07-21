@@ -1,11 +1,11 @@
 "use client";
 
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useBalanceSheet } from "@/features/accounting/api/reports-api";
 import { useFlatChartOfAccounts } from "@/features/accounting/api/coa-api";
 import { useManualJournalDetail } from "@/features/accounting/api/manual-journal-api";
-import { useBalanceSheet } from "@/features/accounting/api/reports-api";
 import { getThisMonthRange } from "@/lib/date-utils";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
 
 import { BalanceSheetDashboard } from "./balance-sheet-dashboard";
 import { BalanceSheetDetail } from "./balance-sheet-detail";
@@ -21,6 +21,7 @@ export function BalanceSheetReport() {
 
     const { data, isLoading, isError, refetch } = useBalanceSheet(asOfDate);
     const { data: flatAccounts, isLoading: isLoadingCoas } = useFlatChartOfAccounts();
+
     const isJournalNeeded = (action === "edit" || action === "detail") && !!journalUid;
 
     const { data: journal, isLoading: isJournalLoading, isFetching: isJournalFetching } = useManualJournalDetail(
@@ -45,10 +46,6 @@ export function BalanceSheetReport() {
         );
     }
 
-    if (action === "detail" && journal && flatAccounts) {
-        return <BalanceSheetDetail journal={journal} flatAccounts={flatAccounts} />;
-    }
-
     if (action === "new" || action === "edit") {
         return (
             <BalanceSheetEditor
@@ -58,9 +55,15 @@ export function BalanceSheetReport() {
                 journal={journal}
                 action={action}
                 journalUid={journalUid}
-                refetch={refetch}
+                refetch={() => {
+                    void refetch();
+                }}
             />
         );
+    }
+
+    if (action === "detail" && journal && flatAccounts) {
+        return <BalanceSheetDetail journal={journal} flatAccounts={flatAccounts} />;
     }
 
     return (
