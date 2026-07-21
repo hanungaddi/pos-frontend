@@ -126,6 +126,7 @@ export interface MemberPayment {
     hutang_sesudah: number;
     tanggal_bayar: string;
     catatan: string | null;
+    catatan_void: string | null;
     status: string;
     created_at: string;
     user?: {

@@ -269,6 +269,14 @@ export function MemberPaymentsPage() {
                     {row.original.catatan || "-"}
                 </span>
             ),
+        }, {
+            accessorKey: "catatan_void",
+            header: "Alasan pembatalan",
+            cell: ({ row }) => (
+                <span className="text-slate-500 font-medium text-xs block max-w-[150px] truncate" title={row.original.catatan_void || ""}>
+                    {row.original.catatan_void || "-"}
+                </span>
+            ),
         },
     ];
 
