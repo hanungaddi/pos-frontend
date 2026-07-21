@@ -38,15 +38,16 @@ export function CloseShiftForm({
     const methods = useForm<CloseCashDrawerInput>({
         resolver: zodResolver(closeCashDrawerSchema) as Resolver<CloseCashDrawerInput>,
         defaultValues: {
-            actual_closing_balance: 0,
+            actual_closing_balance: null as unknown as number,
             closing_note: "",
         },
     });
 
     const { handleSubmit, formState: { isSubmitting } } = methods;
 
-    const actualClosing = useWatch({ control: methods.control, name: "actual_closing_balance" }) || 0;
-    const diff = actualClosing - expectedCash;
+    const actualClosing = useWatch({ control: methods.control, name: "actual_closing_balance" });
+    const hasEnteredBalance = actualClosing !== null && actualClosing !== undefined && actualClosing !== ("" as unknown as number);
+    const diff = hasEnteredBalance ? Number(actualClosing) - expectedCash : 0;
 
     const onSubmit = async (data: CloseCashDrawerInput) => {
         const storeCart = useCheckoutStore.getState().cart;
@@ -130,9 +131,10 @@ export function CloseShiftForm({
                         label="Jumlah Saldo Akhir Nyata (Fisik Laci)"
                         placeholder="0"
                         disabled={closeMutation.isPending || isSubmitting}
+                        autoFocus
                     />
 
-                    {actualClosing !== undefined && !isNaN(actualClosing) && (
+                    {hasEnteredBalance && !isNaN(Number(actualClosing)) && (
                         <div className="text-[11px] font-bold mt-1.5 flex justify-between px-1">
                             <span className="text-slate-400">Selisih Hitung:</span>
                             {diff === 0 ? (
