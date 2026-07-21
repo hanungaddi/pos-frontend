@@ -109,9 +109,9 @@ export function MemberPaymentsPage() {
 
     const payments = paymentsData?.data || [];
 
-    const formatDateTime = (dateString: string) => {
+    const formatDate = (dateString: string) => {
         try {
-            return format(new Date(dateString), "dd MMM yyyy, HH:mm", { locale: id });
+            return format(new Date(dateString), "dd MMM yyyy", { locale: id });
         } catch {
             return dateString;
         }
@@ -136,7 +136,7 @@ export function MemberPaymentsPage() {
                 <div className="flex items-center gap-2">
                     <IconCalendar size={14} className="text-slate-400 shrink-0" />
                     <span className="font-medium text-slate-600">
-                        {formatDateTime(row.original.tanggal_bayar)}
+                        {formatDate(row.original.tanggal_bayar)}
                     </span>
                 </div>
             ),
