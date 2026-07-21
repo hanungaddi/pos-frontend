@@ -8,6 +8,8 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { BalanceSheetDashboard } from "./balance-sheet-dashboard";
+import { BalanceSheetDetail } from "./balance-sheet-detail";
+import { BalanceSheetEditor } from "./balance-sheet-editor";
 import { BalanceSheetSkeleton } from "./balance-sheet-skeleton";
 
 export function BalanceSheetReport() {
@@ -43,16 +45,30 @@ export function BalanceSheetReport() {
         );
     }
 
+    if (action === "detail" && journal && flatAccounts) {
+        return <BalanceSheetDetail journal={journal} flatAccounts={flatAccounts} />;
+    }
+
+    if (action === "new" || action === "edit") {
+        return (
+            <BalanceSheetEditor
+                asOfDate={asOfDate}
+                data={data}
+                flatAccounts={flatAccounts}
+                journal={journal}
+                action={action}
+                journalUid={journalUid}
+                refetch={refetch}
+            />
+        );
+    }
+
     return (
         <BalanceSheetDashboard
             asOfDate={asOfDate}
             onAsOfDateChange={setAsOfDate}
             data={data}
             flatAccounts={flatAccounts}
-            journal={journal}
-            action={action}
-            journalUid={journalUid}
-            refetch={refetch}
         />
     );
 }
