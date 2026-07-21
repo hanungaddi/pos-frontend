@@ -170,13 +170,12 @@ export function BalanceSheetEditor({
     const difference = Math.abs(totalLeftVal - totalRightVal);
     const isBalanced = difference < 0.1;
 
-    // Save adjustment journal line items
-    const handleSaveJournal = async (status: "draft" | "posted") => {
-        if (!editedData) return;
+    // Calculate adjustment journal lines
+    const adjustmentLines = useMemo(() => {
+        if (!editedData) return [];
 
         const journalDesc = description || "Penyesuaian Neraca Keuangan";
         const lines: { chart_of_account_uid: string; description: string; debit: number; credit: number }[] = [];
-
         const isEditingExisting = action === "edit" && !!journalUid;
 
         if (isEditingExisting) {
@@ -244,10 +243,17 @@ export function BalanceSheetEditor({
             }
         }
 
-        if (lines.length === 0) {
-            toast.error("Minimal harus ada satu akun dengan debit/kredit bukan nol untuk disimpan.");
-            return;
-        }
+        return lines;
+    }, [editedData, action, journalUid, description, data]);
+
+    const hasChanges = adjustmentLines.length > 0;
+
+    // Save adjustment journal line items
+    const handleSaveJournal = async (status: "draft" | "posted") => {
+        if (!editedData || !hasChanges) return;
+
+        const journalDesc = description || "Penyesuaian Neraca Keuangan";
+        const lines = adjustmentLines;
 
         const isSavingPending = createJournalMutation.isPending || updateJournalMutation.isPending;
         if (isSavingPending) return;
@@ -437,6 +443,7 @@ export function BalanceSheetEditor({
                     onPost={() => handleSaveJournal("posted")}
                     isPending={isPending}
                     hasDescriptionAndDate={!!description && !!transactionDate}
+                    hasChanges={hasChanges}
                 />
             )}
         </div>

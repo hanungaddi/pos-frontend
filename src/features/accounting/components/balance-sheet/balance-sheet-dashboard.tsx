@@ -1,20 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ROUTES } from "@/constants/routes";
 import type { BalanceSheetData, ChartOfAccount } from "@/features/accounting/types";
-import { formatRupiah } from "@/hooks/use-format-rupiah";
 import { cn } from "@/lib/utils";
 import { useBalanceSheetStore } from "@/stores/balance-sheet-store";
 import {
-    IconAlertTriangle,
-    IconArrowRight,
     IconCoin,
     IconEdit,
-    IconScale,
     IconTrendingUp,
-    IconWallet,
+    IconWallet
 } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -188,7 +182,7 @@ export function BalanceSheetDashboard({
             )}
 
             {/* Unbalanced Warning Banner with direct shortcut to Entri Tidak Seimbang */}
-            {!isBalanced && (
+            {/* {!isBalanced && (
                 <div className="p-4 rounded-2xl border border-amber-200 bg-amber-50/80 dark:bg-amber-950/30 dark:border-amber-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm text-amber-900 dark:text-amber-200 transition-all">
                     <div className="flex items-start gap-3">
                         <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 shrink-0 mt-0.5 sm:mt-0">
@@ -217,7 +211,7 @@ export function BalanceSheetDashboard({
                         </Button>
                     </Link>
                 </div>
-            )}
+            )} */}
 
             {/* Balance Status Visual Card */}
             <BalanceSheetStatusCard

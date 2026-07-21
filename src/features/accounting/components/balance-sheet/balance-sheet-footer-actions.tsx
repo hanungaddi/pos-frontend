@@ -23,6 +23,7 @@ interface BalanceSheetFooterActionsProps {
     isPending: boolean;
     hasDescriptionAndDate: boolean;
     viewType?: "standard" | "equation";
+    hasChanges?: boolean;
 }
 
 export function BalanceSheetFooterActions({
@@ -36,6 +37,7 @@ export function BalanceSheetFooterActions({
     isPending,
     hasDescriptionAndDate,
     viewType = "standard",
+    hasChanges = true,
 }: BalanceSheetFooterActionsProps) {
     return (
         <div className="sticky bottom-6 z-50 w-full mt-8 px-2 sm:px-4">
@@ -120,9 +122,10 @@ export function BalanceSheetFooterActions({
                     <Button
                         type="button"
                         variant="outline"
-                        disabled={isPending}
+                        disabled={isPending || !hasChanges}
                         onClick={onSaveDraft}
-                        className="h-11 px-5 text-xs font-bold rounded-2xl border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900/40 hover:bg-indigo-500/5 dark:hover:bg-indigo-950/10 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-[0.98] cursor-pointer"
+                        title={!hasChanges ? "Tidak ada perubahan di neraca" : "Simpan Draf"}
+                        className="h-11 px-5 text-xs font-bold rounded-2xl border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900/40 hover:bg-indigo-500/5 dark:hover:bg-indigo-950/10 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isPending ? (
                             <IconLoader2 className="w-4 h-4 animate-spin" />
@@ -134,9 +137,18 @@ export function BalanceSheetFooterActions({
 
                     <Button
                         type="button"
-                        disabled={!isBalanced || !hasDescriptionAndDate || isPending}
+                        disabled={!isBalanced || !hasDescriptionAndDate || isPending || !hasChanges}
                         onClick={onPost}
-                        className="h-11 px-6 text-xs font-extrabold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:from-slate-100 disabled:to-slate-100 disabled:text-slate-400 dark:disabled:from-slate-800 dark:disabled:to-slate-800 dark:disabled:text-slate-600 rounded-2xl flex items-center justify-center gap-1.5 transition-all shadow-[0_4px_14px_rgba(99,102,241,0.25)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.35)] disabled:shadow-none active:scale-[0.98] cursor-pointer"
+                        title={
+                            !hasChanges
+                                ? "Tidak ada perubahan di neraca"
+                                : !isBalanced
+                                ? "Nilai debit dan kredit harus seimbang"
+                                : !hasDescriptionAndDate
+                                ? "Deskripsi dan tanggal wajib diisi"
+                                : "Posting Jurnal"
+                        }
+                        className="h-11 px-6 text-xs font-extrabold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:from-slate-100 disabled:to-slate-100 disabled:text-slate-400 dark:disabled:from-slate-800 dark:disabled:to-slate-800 dark:disabled:text-slate-600 rounded-2xl flex items-center justify-center gap-1.5 transition-all shadow-[0_4px_14px_rgba(99,102,241,0.25)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.35)] disabled:shadow-none active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed"
                     >
                         {isPending ? (
                             <>

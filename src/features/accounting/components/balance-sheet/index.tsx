@@ -15,7 +15,7 @@ import { BalanceSheetSkeleton } from "./balance-sheet-skeleton";
 export function BalanceSheetReport() {
     const [asOfDate, setAsOfDate] = useState<string>(() => getThisMonthRange().to);
     const searchParams = useSearchParams();
-
+    
     const action = searchParams.get("action");
     const journalUid = searchParams.get("uid");
 
