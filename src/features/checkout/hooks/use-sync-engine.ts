@@ -231,9 +231,10 @@ export function useSyncEngine() {
             const perPage = 250;
 
             while (currentPage <= lastPage) {
-                const params: PaginationParams & { updated_after?: string } = {
+                const params: PaginationParams & { updated_after?: string; include_archived?: boolean } = {
                     page: currentPage,
                     per_page: perPage,
+                    include_archived: true,
                 };
                 if (lastProductUpdate) {
                     params.updated_after = lastProductUpdate;
@@ -241,6 +242,7 @@ export function useSyncEngine() {
 
                 const res = await apiGetList<Product>("/v1/products", params);
                 if (res.data && res.data.length > 0) {
+                    // Update all products in IndexedDB (including status: 'archived' so local filter excludes them)
                     await db.products.bulkPut(res.data);
                 }
 
